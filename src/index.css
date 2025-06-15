@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -516,6 +515,7 @@
     linear-gradient(45deg, rgba(80, 0, 0, 0.6), rgba(0, 0, 0, 0.8)),
     transparent
   );
+  height: 20px;
   transform: translateY(-100%);
   animation: scanMove 2s linear infinite;
 }
@@ -556,4 +556,3 @@
   border-color: linear-gradient(45deg, rgba(60, 0, 0, 0.9), rgba(0, 0, 0, 0.9));
   box-shadow: 0 0 10px rgba(60, 0, 0, 0.7);
 }
-
