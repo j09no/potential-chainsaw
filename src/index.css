@@ -427,7 +427,7 @@
   background: linear-gradient(
     90deg,
     transparent,
-    rgba(139, 0, 0, 0.6),
+    rgba(0, 0, 0, 0.8),
     transparent
   );
 }
@@ -513,7 +513,7 @@
   background: linear-gradient(
     to bottom,
     transparent,
-    rgba(139, 0, 0, 0.3),
+    linear-gradient(45deg, rgba(80, 0, 0, 0.6), rgba(0, 0, 0, 0.8)),
     transparent
   );
   transform: translateY(-100%);
@@ -553,6 +553,7 @@
 }
 
 #card:hover .corner-elements span {
-  border-color: rgba(139, 0, 0, 0.8);
-  box-shadow: 0 0 10px rgba(139, 0, 0, 0.5);
+  border-color: linear-gradient(45deg, rgba(60, 0, 0, 0.9), rgba(0, 0, 0, 0.9));
+  box-shadow: 0 0 10px rgba(60, 0, 0, 0.7);
 }
+
