@@ -1,10 +1,70 @@
 
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 
 const Index = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const card = cardRef.current;
+    
+    if (!container || !card) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const rect = container.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      
+      const mouseX = e.clientX - centerX;
+      const mouseY = e.clientY - centerY;
+      
+      const rotateX = (mouseY / rect.height) * -30;
+      const rotateY = (mouseX / rect.width) * 30;
+      
+      card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    };
+
+    const handleMouseLeave = () => {
+      card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const rect = container.getBoundingClientRect();
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      
+      const touchX = touch.clientX - centerX;
+      const touchY = touch.clientY - centerY;
+      
+      const rotateX = (touchY / rect.height) * -30;
+      const rotateY = (touchX / rect.width) * 30;
+      
+      card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    };
+
+    const handleTouchEnd = () => {
+      card.style.transform = 'perspective(1000px) rotateX(0deg) rotateY(0deg)';
+    };
+
+    container.addEventListener('mousemove', handleMouseMove);
+    container.addEventListener('mouseleave', handleMouseLeave);
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd);
+
+    return () => {
+      container.removeEventListener('mousemove', handleMouseMove);
+      container.removeEventListener('mouseleave', handleMouseLeave);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, []);
+
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-8">
-      <div className="container">
+      <div ref={containerRef} className="container">
         <div className="canvas">
           <div className="tr-1"></div>
           <div className="tr-2"></div>
@@ -35,7 +95,7 @@ const Index = () => {
         
         <div className="tracker"></div>
         
-        <div id="card">
+        <div id="card" ref={cardRef}>
           <div className="card-content">
             <div className="title noselect">CYBER</div>
             <div id="prompt" className="noselect">
