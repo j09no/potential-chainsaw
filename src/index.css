@@ -508,16 +508,20 @@
 
 .scan-line {
   position: absolute;
-  inset: 0;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
   background: linear-gradient(
     to bottom,
     transparent,
-    linear-gradient(45deg, rgba(80, 0, 0, 0.6), rgba(0, 0, 0, 0.8)),
+    rgba(80, 0, 0, 0.8),
+    rgba(0, 0, 0, 0.9),
     transparent
   );
-  height: 20px;
   transform: translateY(-100%);
   animation: scanMove 2s linear infinite;
+  pointer-events: none;
 }
 
 @keyframes lineGrow {
@@ -539,8 +543,11 @@
   0% {
     transform: translateY(-100%);
   }
+  50% {
+    transform: translateY(calc(100vh - 20px));
+  }
   100% {
-    transform: translateY(100%);
+    transform: translateY(-100%);
   }
 }
 
