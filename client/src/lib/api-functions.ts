@@ -7,8 +7,6 @@ import type {
   QuizAnswer,
   QuizStat,
   FileItem,
-  Folder,
-  Message,
   StudySession,
   ScheduleEvent
 } from "@shared/schema";
@@ -90,8 +88,22 @@ export async function deleteSubject(id: number): Promise<void> {
 // Chapters
 export async function getChapters(): Promise<Chapter[]> {
   try {
-    await ensureInitialized();
-    return await indexedDB.getAll('chapters');
+    const response = await fetch('/api/chapters');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const chapters = await response.json();
+    
+    // Convert database format to expected format
+    return chapters.map((chapter: any) => ({
+      id: chapter.id,
+      subjectId: chapter.subjectId,
+      title: chapter.title,
+      description: chapter.description || '',
+      progress: 0, // Calculate from questions if needed
+      totalQuestions: 0, // Will be updated when questions are loaded
+      difficulty: chapter.difficulty || 'medium'
+    }));
   } catch (error) {
     console.error('Error getting chapters:', error);
     return [];
@@ -572,7 +584,23 @@ export async function getQuestionsByChapter(chapterId: number) {
     }
     const questions = await response.json();
     console.log('Fetched questions from API:', questions);
-    return questions;
+    
+    // Convert database format to quiz format for compatibility
+    const formattedQuestions = questions.map((q: any) => ({
+      id: q.id,
+      question: q.question,
+      optionA: q.optionA,
+      optionB: q.optionB,
+      optionC: q.optionC,
+      optionD: q.optionD,
+      correctAnswer: q.correctAnswer, // Keep as number (0,1,2,3)
+      explanation: q.explanation,
+      difficulty: q.difficulty,
+      chapterId: q.chapterId,
+      createdAt: q.createdAt
+    }));
+    
+    return formattedQuestions;
   } catch (error) {
     console.error('Error fetching questions from API:', error);
     throw error;
