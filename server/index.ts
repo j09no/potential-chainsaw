@@ -1,12 +1,14 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { setupVite, serveStatic, log } from "./vite";
+import router from "./routes";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// No API routes needed - app uses client-side functions only
+// API routes
+app.use(router);
 
 (async () => {
   const server = createServer(app);
