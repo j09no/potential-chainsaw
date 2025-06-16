@@ -16,10 +16,10 @@ import { queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CSVUploadModal } from "@/components/csv-upload-modal";
-import type { Chapter, Subject } from "@shared/schema";
+import type { ChapterDB, SubjectDB } from "@shared/schema";
 import { z } from "zod";
 import { useLocation } from "wouter";
-import { getChapters, createChapter, deleteChapter, getSubjects } from "@/lib/api-functions";
+import { getChapters, createChapter, deleteChapter, getSubjects, getChaptersBySubject } from "@/lib/db-api-functions";
 import { DeleteConfirmationModal } from "@/components/delete-confirmation-modal";
 
 const formSchema = z.object({
@@ -42,13 +42,13 @@ export default function Chapters() {
     chapter: any;
   }>({ isOpen: false, chapter: null });
 
-  const { data: subjects } = useQuery<Subject[]>({
+  const { data: subjects } = useQuery<SubjectDB[]>({
     queryKey: ["subjects"],
     queryFn: getSubjects,
   });
 
   // Get chapters
-  const { data: chapters = [], isLoading, error, refetch } = useQuery({
+  const { data: chapters = [], isLoading, error, refetch } = useQuery<ChapterDB[]>({
     queryKey: ["chapters"],
     queryFn: getChapters,
   });
@@ -58,9 +58,11 @@ export default function Chapters() {
     mutationFn: async (data: z.infer<typeof formSchema>) => {
       const chapterData = {
         title: data.title,
-        description: data.description,
-        subject: subjects?.find(s => s.id === parseInt(selectedSubject))?.name || "Unknown",
-        subjectId: parseInt(selectedSubject)
+        description: data.description || "",
+        subjectId: parseInt(selectedSubject),
+        difficulty: "medium",
+        progress: 0,
+        totalQuestions: 0
       };
       return await createChapter(chapterData);
     },
@@ -262,9 +264,7 @@ export default function Chapters() {
           </Card>
         ) : (
           filteredChapters.map((chapter) => {
-            const progressPercentage = (chapter.totalQuestions || 0) > 0 
-              ? Math.round(((chapter.completedQuestions || 0) / (chapter.totalQuestions || 1)) * 100)
-              : 0;
+            const progressPercentage = chapter.progress || 0;
 
             return (
               <Card 
