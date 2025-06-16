@@ -14,20 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CSVUploadModal } from "@/components/csv-upload-modal";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { z } from "zod";
-import { getSubtopicsByChapter, createSubtopic, deleteSubtopic, getChapters, getQuestionsBySubtopic } from "@/lib/api-functions";
-
-const subtopicSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  description: z.string().optional(),
-});
-
-interface Subtopic {
-  id: number;
-  title: string;
-  description?: string;
-  chapter_id: number;
-  created_at: string;
-}
+import { getChapters, getQuestionsByChapter } from "@/lib/api-functions";
 
 interface ChapterDetailsProps {
   chapterId: string;

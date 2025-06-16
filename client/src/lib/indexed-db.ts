@@ -58,6 +58,29 @@ interface DBSchema {
     selectedAnswer: number;
     isCorrect: boolean;
   };
+  quizStats: {
+    id: number;
+    date: Date;
+    chapterTitle: string;
+    subjectTitle: string;
+    score: number;
+    totalQuestions: number;
+    percentage: number;
+  };
+  studySessions: {
+    id: number;
+    chapterId: number;
+    duration: number;
+    date: Date;
+  };
+  scheduleEvents: {
+    id: number;
+    title: string;
+    description?: string;
+    date: Date;
+    time: string;
+    type: string;
+  };
 }
 
 class IndexedDBStorage {
@@ -77,7 +100,7 @@ class IndexedDBStorage {
           throw new Error('IndexedDB is not supported in this browser');
         }
 
-        const request = indexedDB.open(this.dbName, this.version);
+        const request = window.indexedDB.open(this.dbName, this.version);
 
         request.onerror = () => {
           console.error('IndexedDB open error:', request.error);
@@ -133,6 +156,21 @@ class IndexedDBStorage {
               const quizAnswersStore = db.createObjectStore('quizAnswers', { keyPath: 'id' });
               quizAnswersStore.createIndex('sessionId', 'sessionId');
             }
+
+            if (!db.objectStoreNames.contains('quizStats')) {
+              const quizStatsStore = db.createObjectStore('quizStats', { keyPath: 'id' });
+              quizStatsStore.createIndex('date', 'date');
+            }
+
+            if (!db.objectStoreNames.contains('studySessions')) {
+              const studySessionsStore = db.createObjectStore('studySessions', { keyPath: 'id' });
+              studySessionsStore.createIndex('chapterId', 'chapterId');
+            }
+
+            if (!db.objectStoreNames.contains('scheduleEvents')) {
+              const scheduleEventsStore = db.createObjectStore('scheduleEvents', { keyPath: 'id' });
+              scheduleEventsStore.createIndex('date', 'date');
+            }
           } catch (storeError) {
             console.error('Error creating object stores:', storeError);
             reject(storeError);
@@ -159,7 +197,7 @@ class IndexedDBStorage {
 
   private async getStore<T extends keyof DBSchema>(storeName: T, mode: IDBTransactionMode = 'readonly'): Promise<IDBObjectStore> {
     const db = await this.ensureDB();
-    const transaction = db.createTransaction([storeName], mode);
+    const transaction = db.transaction([storeName], mode);
 
     transaction.onerror = () => {
       console.error(`Transaction error for store ${storeName}:`, transaction.error);
