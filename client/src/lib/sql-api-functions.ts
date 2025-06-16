@@ -156,8 +156,8 @@ export async function createSubject(data: { name: string; color: string }): Prom
 
 export async function updateSubject(id: number, data: { name?: string; color?: string }): Promise<Subject> {
   await sqliteDB.init();
-  const updates = [];
-  const params = [];
+  const updates: string[] = [];
+  const params: any[] = [];
   
   if (data.name) {
     updates.push('name = ?');
@@ -272,8 +272,8 @@ export async function updateQuestion(id: number, data: {
   difficulty?: string;
 }): Promise<Question> {
   await sqliteDB.init();
-  const updates = [];
-  const params = [];
+  const updates: string[] = [];
+  const params: any[] = [];
   
   Object.entries(data).forEach(([key, value]) => {
     if (value !== undefined) {
@@ -428,8 +428,8 @@ export async function updateScheduleEvent(id: number, data: {
   description?: string;
 }): Promise<any> {
   await sqliteDB.init();
-  const updates = [];
-  const params = [];
+  const updates: string[] = [];
+  const params: any[] = [];
   
   Object.entries(data).forEach(([key, value]) => {
     if (value !== undefined) {

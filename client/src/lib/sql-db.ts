@@ -23,7 +23,11 @@ class SQLiteManager {
       
       if (savedDb) {
         console.log('Loading existing database from localStorage...');
-        const binaryArray = Uint8Array.from(atob(savedDb), c => c.charCodeAt(0));
+        const binaryString = atob(savedDb);
+      const binaryArray = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        binaryArray[i] = binaryString.charCodeAt(i);
+      }
         this.db = new this.sqlJs.Database(binaryArray);
       } else {
         console.log('Creating new database...');
@@ -213,7 +217,7 @@ class SQLiteManager {
 
     try {
       const binaryArray = this.db.export();
-      const base64 = btoa(String.fromCharCode(...binaryArray));
+      const base64 = btoa(String.fromCharCode.apply(null, Array.from(binaryArray)));
       localStorage.setItem(this.dbName, base64);
       console.log('Database saved to localStorage');
     } catch (error) {
