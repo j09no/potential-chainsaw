@@ -123,6 +123,10 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(chapters);
   }
 
+  async getChaptersBySubject(subjectId: number): Promise<ChapterDB[]> {
+    return await db.select().from(chapters).where(eq(chapters.subjectId, subjectId));
+  }
+
   async createChapter(chapterData: InsertChapter): Promise<ChapterDB> {
     const [chapter] = await db
       .insert(chapters)

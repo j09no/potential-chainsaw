@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { storage } from "./storage";
-import { insertFileSchema, insertFolderSchema, insertMessageSchema, insertChapterSchema, insertSubtopicSchema } from "@shared/schema";
+import { insertFileSchema, insertFolderSchema, insertMessageSchema, insertSubjectSchema, insertChapterSchema, insertSubtopicSchema } from "@shared/schema";
 import { z } from "zod";
 
 const router = Router();
@@ -132,6 +132,60 @@ router.delete("/api/messages", async (req, res) => {
   } catch (error) {
     console.error("Error clearing messages:", error);
     res.status(500).json({ error: "Failed to clear messages" });
+  }
+});
+
+// Subject routes
+router.get("/api/subjects", async (req, res) => {
+  try {
+    const subjects = await storage.getSubjects();
+    res.json(subjects);
+  } catch (error) {
+    console.error("Error getting subjects:", error);
+    res.status(500).json({ error: "Failed to get subjects" });
+  }
+});
+
+router.post("/api/subjects", async (req, res) => {
+  try {
+    const subjectData = insertSubjectSchema.parse(req.body);
+    const subject = await storage.createSubject(subjectData);
+    res.json(subject);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      res.status(400).json({ error: "Invalid subject data", details: error.errors });
+    } else {
+      console.error("Error creating subject:", error);
+      res.status(500).json({ error: "Failed to create subject" });
+    }
+  }
+});
+
+router.delete("/api/subjects/:id", async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) {
+      return res.status(400).json({ error: "Invalid subject ID" });
+    }
+    await storage.deleteSubject(id);
+    res.json({ success: true });
+  } catch (error) {
+    console.error("Error deleting subject:", error);
+    res.status(500).json({ error: "Failed to delete subject" });
+  }
+});
+
+router.get("/api/subjects/:subjectId/chapters", async (req, res) => {
+  try {
+    const subjectId = parseInt(req.params.subjectId);
+    if (isNaN(subjectId)) {
+      return res.status(400).json({ error: "Invalid subject ID" });
+    }
+    const chapters = await storage.getChaptersBySubject(subjectId);
+    res.json(chapters);
+  } catch (error) {
+    console.error("Error getting chapters by subject:", error);
+    res.status(500).json({ error: "Failed to get chapters" });
   }
 });
 
