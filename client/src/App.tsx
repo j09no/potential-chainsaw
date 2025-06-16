@@ -15,6 +15,7 @@ import Storage from "./pages/storage";
 import Chat from "./pages/chat";
 import Calendar from "./pages/calendar";
 import ChapterDetails from "./pages/chapter-details";
+import DatabaseTest from "./pages/database-test";
 import NotFound from "./pages/not-found";
 import { BrainCircuit, Sparkles } from "lucide-react";
 
@@ -72,6 +73,7 @@ function Router() {
             <Route path="/storage" component={Storage} />
             <Route path="/chat" component={Chat} />
             <Route path="/calendar" component={Calendar} />
+            <Route path="/database-test" component={DatabaseTest} />
             <Route component={NotFound} />
           </Switch>
         </div>

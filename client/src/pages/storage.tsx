@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { FolderPlus, Upload, FileText, Image, Download, Search, MoreVertical, Folder, ArrowLeft, Trash2, Database, Save, RefreshCw, HardDrive } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getFiles, getFolders, createFile, createFolder, deleteFile, deleteFolder } from "../lib/db-api-functions";
+import { getFiles, getFolders, createFile, createFolder, deleteFile, deleteFolder } from "../lib/api-functions";
 import { DeleteConfirmationModal } from '@/components/delete-confirmation-modal';
 import { DatabaseManager } from '@/components/database-manager';
 
