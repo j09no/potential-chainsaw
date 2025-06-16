@@ -1,4 +1,4 @@
-import type { SubjectDB, ChapterDB, SubtopicDB, File, FolderDB, MessageDB } from "@shared/schema";
+import type { SubjectDB, ChapterDB, File, FolderDB, MessageDB } from "@shared/schema";
 
 const API_BASE = '/api';
 

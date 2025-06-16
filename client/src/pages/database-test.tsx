@@ -4,13 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Plus, Database, RefreshCw } from "lucide-react";
-import { getSubjects, createSubject, deleteSubject, getChapters, createChapter, deleteChapter, getSubtopics, createSubtopic } from "@/lib/db-api-functions";
-import type { SubjectDB, ChapterDB, SubtopicDB } from "@shared/schema";
+import { getSubjects, createSubject, deleteSubject, getChapters, createChapter, deleteChapter } from "@/lib/db-api-functions";
+import type { SubjectDB, ChapterDB } from "@shared/schema";
 
 export default function DatabaseTest() {
   const [subjects, setSubjects] = useState<SubjectDB[]>([]);
   const [chapters, setChapters] = useState<ChapterDB[]>([]);
-  const [subtopics, setSubtopics] = useState<SubtopicDB[]>([]);
   const [loading, setLoading] = useState(false);
   const [newSubjectName, setNewSubjectName] = useState("");
   const [newSubjectColor, setNewSubjectColor] = useState("#3B82F6");
@@ -18,14 +17,12 @@ export default function DatabaseTest() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [subjectsData, chaptersData, subtopicsData] = await Promise.all([
+      const [subjectsData, chaptersData] = await Promise.all([
         getSubjects(),
-        getChapters(),
-        getSubtopics()
+        getChapters()
       ]);
       setSubjects(subjectsData);
       setChapters(chaptersData);
-      setSubtopics(subtopicsData);
     } catch (error) {
       console.error('Error loading data:', error);
     }
@@ -203,30 +200,7 @@ export default function DatabaseTest() {
           </CardContent>
         </Card>
 
-        {/* Subtopics Section */}
-        <Card className="glass-card">
-          <CardHeader>
-            <CardTitle className="text-white">Subtopics ({subtopics.length})</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            {subtopics.map((subtopic) => (
-              <div key={subtopic.id} className="p-3 bg-black/20 rounded-lg">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-white font-medium text-sm">{subtopic.title}</h3>
-                  <Badge variant="outline" className="text-xs">
-                    ID: {subtopic.id}
-                  </Badge>
-                </div>
-                <div className="text-xs text-gray-400 space-y-1">
-                  <div>Chapter: {getChapterTitle(subtopic.chapterId)}</div>
-                  {subtopic.description && (
-                    <div>Desc: {subtopic.description}</div>
-                  )}
-                </div>
-              </div>
-            ))}
-          </CardContent>
-        </Card>
+        
       </div>
 
       {/* Database Status */}

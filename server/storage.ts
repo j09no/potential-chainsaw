@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { files, folders, messages, subjects, chapters, subtopics, type File, type FolderDB, type MessageDB, type SubjectDB, type ChapterDB, type SubtopicDB, type InsertFile, type InsertFolder, type InsertMessage, type InsertSubject, type InsertChapter, type InsertSubtopic } from "@shared/schema";
+import { files, folders, messages, subjects, chapters, type File, type FolderDB, type MessageDB, type SubjectDB, type ChapterDB, type InsertFile, type InsertFolder, type InsertMessage, type InsertSubject, type InsertChapter } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
 export interface IStorage {
@@ -30,11 +30,7 @@ export interface IStorage {
   createChapter(chapterData: InsertChapter): Promise<ChapterDB>;
   deleteChapter(id: number): Promise<void>;
 
-  // Subtopic operations
-  getSubtopics(): Promise<SubtopicDB[]>;
-  getSubtopicsByChapter(chapterId: number): Promise<SubtopicDB[]>;
-  createSubtopic(subtopicData: InsertSubtopic): Promise<SubtopicDB>;
-  deleteSubtopic(id: number): Promise<void>;
+  
 }
 
 export class DatabaseStorage implements IStorage {
