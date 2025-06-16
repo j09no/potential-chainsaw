@@ -1,4 +1,3 @@
-import { apiRequest } from "./queryClient";
 import type {
   Subject, InsertSubject,
   Chapter, InsertChapter,
@@ -14,6 +13,27 @@ import type {
   ScheduleEvent, InsertScheduleEvent
 } from "@shared/schema";
 
+// Helper function for API requests that return JSON
+async function apiRequest(url: string, method: string, data?: any): Promise<any> {
+  const response = await fetch(url, {
+    method,
+    headers: data ? { "Content-Type": "application/json" } : {},
+    body: data ? JSON.stringify(data) : undefined,
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(`${response.status}: ${text}`);
+  }
+
+  if (method === "DELETE" && response.status === 200) {
+    return; // DELETE requests may not return JSON
+  }
+
+  return response.json();
+}
+
 // Subjects API
 export async function getSubjects(): Promise<Subject[]> {
   const response = await fetch("/api/subjects");
@@ -22,13 +42,11 @@ export async function getSubjects(): Promise<Subject[]> {
 }
 
 export async function createSubject(data: InsertSubject): Promise<Subject> {
-  const response = await apiRequest("/api/subjects", "POST", data);
-  return response;
+  return await apiRequest("/api/subjects", "POST", data);
 }
 
 export async function updateSubject(id: number, data: Partial<InsertSubject>): Promise<Subject> {
-  const response = await apiRequest(`/api/subjects/${id}`, "PUT", data);
-  return response;
+  return await apiRequest(`/api/subjects/${id}`, "PUT", data);
 }
 
 export async function deleteSubject(id: number): Promise<void> {
@@ -58,13 +76,11 @@ export async function getChapterById(id: number): Promise<Chapter | null> {
 }
 
 export async function createChapter(data: InsertChapter): Promise<Chapter> {
-  const response = await apiRequest("/api/chapters", "POST", data);
-  return response;
+  return await apiRequest("/api/chapters", "POST", data);
 }
 
 export async function updateChapter(id: number, data: Partial<InsertChapter>): Promise<Chapter> {
-  const response = await apiRequest(`/api/chapters/${id}`, "PUT", data);
-  return response;
+  return await apiRequest(`/api/chapters/${id}`, "PUT", data);
 }
 
 export async function deleteChapter(id: number): Promise<void> {
@@ -79,8 +95,7 @@ export async function getSubtopicsByChapter(chapterId: number): Promise<Subtopic
 }
 
 export async function createSubtopic(data: InsertSubtopic): Promise<Subtopic> {
-  const response = await apiRequest("/api/subtopics", "POST", data);
-  return response;
+  return await apiRequest("/api/subtopics", "POST", data);
 }
 
 export async function deleteSubtopic(id: number): Promise<void> {
@@ -107,18 +122,15 @@ export async function getQuestionsBySubtopic(subtopicId: number): Promise<Questi
 }
 
 export async function createQuestion(data: InsertQuestion): Promise<Question> {
-  const response = await apiRequest("/api/questions", "POST", data);
-  return response;
+  return await apiRequest("/api/questions", "POST", data);
 }
 
 export async function createBulkQuestions(questionsData: InsertQuestion[]): Promise<Question[]> {
-  const response = await apiRequest("/api/questions/bulk", "POST", questionsData);
-  return response;
+  return await apiRequest("/api/questions/bulk", "POST", questionsData);
 }
 
 export async function updateQuestion(id: number, data: Partial<InsertQuestion>): Promise<Question> {
-  const response = await apiRequest(`/api/questions/${id}`, "PUT", data);
-  return response;
+  return await apiRequest(`/api/questions/${id}`, "PUT", data);
 }
 
 export async function deleteQuestion(id: number): Promise<void> {
