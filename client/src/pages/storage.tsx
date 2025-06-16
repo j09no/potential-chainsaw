@@ -7,6 +7,7 @@ import { FolderPlus, Upload, FileText, Image, Download, Search, MoreVertical, Fo
 import { cn } from "@/lib/utils";
 import { getFiles, getFolders, createFile, createFolder, deleteFile, deleteFolder, downloadDatabase, uploadDatabase, clearAllData, createBackup, getBackups, restoreBackup } from "../lib/sql-api-functions";
 import { DeleteConfirmationModal } from '@/components/delete-confirmation-modal';
+import { DatabaseManager } from '@/components/database-manager';
 
 interface FileItem {
   id: number;
@@ -132,7 +133,7 @@ export default function Storage() {
           name: newFile.name,
           type: newFile.type as FileItem['type'],
           size: newFile.size,
-          modified: new Date(newFile.createdAt).toLocaleDateString(),
+          modified: new Date(newFile.created_at || Date.now()).toLocaleDateString(),
           path: newFile.path
         };
 
@@ -153,10 +154,10 @@ export default function Storage() {
     document.body.removeChild(link);
   };
 
-  const handleDeleteClick = (item: FileItem, type: 'file' | 'folder') => {
+  const handleDeleteClick = (item: FileItem) => {
     setDeleteConfirmation({
       isOpen: true,
-      type,
+      type: item.type === 'folder' ? 'folder' : 'file',
       item
     });
   };
