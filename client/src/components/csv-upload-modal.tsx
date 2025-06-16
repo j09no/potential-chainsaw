@@ -5,7 +5,7 @@ import { Upload, X, FileText, AlertCircle, CheckCircle } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { createBulkQuestions } from "@/lib/api-functions";
+import { createBulkQuestionsAPI } from "@/lib/api-functions";
 
 interface CSVUploadModalProps {
   isOpen: boolean;
@@ -59,7 +59,7 @@ export function CSVUploadModal({ isOpen, onClose, chapterId, chapterTitle }: CSV
         correctAnswer: q.correctAnswer
       })));
 
-      const result = await createBulkQuestions({
+      const result = await createBulkQuestionsAPI({
         chapterId,
         questions: formattedQuestions
       });

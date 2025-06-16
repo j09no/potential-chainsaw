@@ -18,7 +18,7 @@ import { calculateQuizScore, calculateQuestionScore, NEET_SCORING } from "@/lib/
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useLocation } from "wouter";
-import { createQuizStat, updateUserStats, getChapters, getQuestionsByChapter, getSubjects } from "@/lib/api-functions";
+import { getQuestionsByChapter, updateUserStats, getChapters, getSubjects } from "@/lib/api-functions";
 
 interface Question {
   id: number;
@@ -72,14 +72,14 @@ export default function Quiz() {
     try {
       const currentChapter = chapters?.find(c => c.id === selectedChapter);
 
-      await createQuizStat({
-        date: new Date(),
-        chapterTitle: currentChapter?.title || 'Unknown Chapter',
-        subjectTitle: currentChapter?.subject || 'Unknown Subject',
-        score: results.correct,
-        totalQuestions: questions.length,
-        percentage: Math.round((results.correct / questions.length) * 100)
-      });
+      // await createQuizStat({
+      //   date: new Date(),
+      //   chapterTitle: currentChapter?.title || 'Unknown Chapter',
+      //   subjectTitle: currentChapter?.subject || 'Unknown Subject',
+      //   score: results.correct,
+      //   totalQuestions: questions.length,
+      //   percentage: Math.round((results.correct / questions.length) * 100)
+      // });
     } catch (error) {
       console.error('Failed to save quiz result:', error);
     }

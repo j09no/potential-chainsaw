@@ -562,8 +562,8 @@ export async function clearAllData(): Promise<void> {
   }
 }
 
-// Question API functions
-export async function getQuestionsByChapter(chapterId: number) {
+// Question API functions for server communication
+export async function getQuestionsByChapterFromAPI(chapterId: number) {
   try {
     const response = await fetch(`/api/questions/chapter/${chapterId}`);
     if (!response.ok) {
@@ -576,7 +576,7 @@ export async function getQuestionsByChapter(chapterId: number) {
   }
 }
 
-export async function createBulkQuestions(data: { chapterId: number; questions: any[] }) {
+export async function createBulkQuestionsAPI(data: { chapterId: number; questions: any[] }) {
   try {
     console.log('Creating bulk questions:', data);
     const response = await fetch(`/api/questions/bulk`, {
@@ -597,14 +597,6 @@ export async function createBulkQuestions(data: { chapterId: number; questions: 
     console.error('Error creating bulk questions:', error);
     throw error;
   }
-}
-
-export async function createQuizStat(statData: any) {
-  // For now, just store in localStorage since we don't have quiz stats table
-  const stats = JSON.parse(localStorage.getItem('quizStats') || '[]');
-  stats.push({ ...statData, id: Date.now() });
-  localStorage.setItem('quizStats', JSON.stringify(stats));
-  return statData;
 }
 
 export async function updateUserStats(statsData: any) {
