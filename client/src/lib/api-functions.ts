@@ -186,25 +186,13 @@ export async function createChapter(chapterData: {
 
 export async function deleteChapter(id: number): Promise<void> {
   try {
-    // Delete all questions in this chapter first
-    const questions = await getQuestionsByChapter(id);
-    for (const question of questions) {
-      await indexedDB.delete('questions', question.id);
+    const response = await fetch(`/api/chapters/${id}`, {
+      method: 'DELETE',
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to delete chapter: ${response.statusText}`);
     }
-
-    // Delete all quiz sessions for this chapter
-    const sessions = await indexedDB.getByIndex('quizSessions', 'chapterId', id);
-    for (const session of sessions) {
-      await indexedDB.delete('quizSessions', session.id);
-    }
-
-    // Delete all study sessions for this chapter
-    const studySessions = await indexedDB.getByIndex('studySessions', 'chapterId', id);
-    for (const session of studySessions) {
-      await indexedDB.delete('studySessions', session.id);
-    }
-
-    await indexedDB.delete('chapters', id);
   } catch (error) {
     console.error('Error deleting chapter:', error);
     throw error;

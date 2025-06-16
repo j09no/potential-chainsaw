@@ -53,25 +53,22 @@ export default function Chapters() {
     queryFn: getChapters,
   });
 
-  // Get all questions - moved here to avoid hooks order issue
-  const { data: questions } = useQuery({
-    queryKey: ["questions"],
+  // Get all questions
+  const { data: questions = [] } = useQuery({
+    queryKey: ["questions", chapters?.map(c => c.id)],
     queryFn: async () => {
-      // Get all questions from all chapters
       const allQuestions = [];
-      if (chapters) {
-        for (const chapter of chapters) {
-          try {
-            const chapterQuestions = await getQuestionsByChapter(chapter.id);
-            allQuestions.push(...chapterQuestions);
-          } catch (error) {
-            console.error(`Error fetching questions for chapter ${chapter.id}:`, error);
-          }
+      for (const chapter of chapters) {
+        try {
+          const chapterQuestions = await getQuestionsByChapter(chapter.id);
+          allQuestions.push(...chapterQuestions);
+        } catch (error) {
+          console.error(`Error fetching questions for chapter ${chapter.id}:`, error);
         }
       }
       return allQuestions;
     },
-    enabled: !!chapters && chapters.length > 0,
+    enabled: chapters.length > 0,
   });
 
   // Create chapter mutation
