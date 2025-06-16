@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { X, Image as ImageIcon, Paperclip, Smile, Mic, Send } from "lucide-react";
-import { getMessages, createMessage } from "../lib/sql-api-functions";
+import { getMessages, createMessage } from "../lib/db-api-functions";
 
 interface Message {
   id: number;
@@ -15,7 +15,7 @@ export default function Chat() {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Load messages on component mount
+  // Load messages from permanent PostgreSQL database
   useEffect(() => {
     const loadMessages = async () => {
       try {
@@ -23,12 +23,12 @@ export default function Chat() {
         const formattedMessages = data.map((msg: any) => ({
           id: msg.id,
           text: msg.text,
-          timestamp: msg.timestamp || new Date().toISOString(),
+          timestamp: msg.timestamp ? new Date(msg.timestamp).toISOString() : new Date().toISOString(),
           sender: msg.sender
         }));
         setMessages(formattedMessages);
       } catch (error) {
-        console.error('Error loading messages:', error);
+        console.error('Error loading messages from database:', error);
       }
     };
 
@@ -83,14 +83,14 @@ export default function Chat() {
     setMessages(prev => [...prev, newMessage]);
     setMessage("");
 
-    // Save message using direct function
+    // Save message to permanent PostgreSQL database
     try {
       await createMessage({
         text: newMessage.text,
         sender: newMessage.sender,
       });
     } catch (error) {
-      console.error('Error saving message:', error);
+      console.error('Error saving message to database:', error);
     }
   };
 

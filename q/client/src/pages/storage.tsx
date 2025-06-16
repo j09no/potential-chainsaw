@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { FolderPlus, Upload, FileText, Image, Download, Search, MoreVertical, Folder, ArrowLeft, Trash2, Database, Save, RefreshCw, HardDrive } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getFiles, getFolders, createFile, createFolder, deleteFile, deleteFolder, downloadDatabase, uploadDatabase, clearAllData, createBackup, getBackups, restoreBackup } from "../lib/sql-api-functions";
+import { getFiles, getFolders, createFile, createFolder, deleteFile, deleteFolder } from "../lib/db-api-functions";
 import { DeleteConfirmationModal } from '@/components/delete-confirmation-modal';
 import { DatabaseManager } from '@/components/database-manager';
 
@@ -34,7 +34,7 @@ export default function Storage() {
     item: any;
   }>({ isOpen: false, type: 'file', item: null });
 
-  // Load files and folders using direct functions
+  // Load files and folders from permanent PostgreSQL database
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -48,7 +48,7 @@ export default function Storage() {
             id: folder.id,
             name: folder.name,
             type: "folder" as const,
-            modified: new Date(folder.created_at).toLocaleDateString(),
+            modified: new Date(folder.createdAt).toLocaleDateString(),
             path: folder.path
           })),
           ...filesData.map((file: any) => ({
@@ -56,28 +56,49 @@ export default function Storage() {
             name: file.name,
             type: file.type as FileItem['type'],
             size: file.size,
-            modified: new Date(file.created_at).toLocaleDateString(),
+            modified: new Date(file.createdAt).toLocaleDateString(),
             path: file.path
           }))
         ];
 
         setFiles(allItems);
       } catch (error) {
-        console.error('Error loading files and folders:', error);
+        console.error('Error loading files and folders from database:', error);
       }
     };
 
     loadData();
-    loadBackups();
   }, []);
 
-  // Load available backups
-  const loadBackups = async () => {
+  // Refresh data from database
+  const refreshData = async () => {
     try {
-      const availableBackups = await getBackups();
-      setBackups(availableBackups);
+      const [filesData, foldersData] = await Promise.all([
+        getFiles(),
+        getFolders()
+      ]);
+
+      const allItems: FileItem[] = [
+        ...foldersData.map((folder: any) => ({
+          id: folder.id,
+          name: folder.name,
+          type: "folder" as const,
+          modified: new Date(folder.createdAt).toLocaleDateString(),
+          path: folder.path
+        })),
+        ...filesData.map((file: any) => ({
+          id: file.id,
+          name: file.name,
+          type: file.type as FileItem['type'],
+          size: file.size,
+          modified: new Date(file.createdAt).toLocaleDateString(),
+          path: file.path
+        }))
+      ];
+
+      setFiles(allItems);
     } catch (error) {
-      console.error('Error loading backups:', error);
+      console.error('Error refreshing data from database:', error);
     }
   };
 
@@ -102,7 +123,7 @@ export default function Storage() {
           id: newFolder.id,
           name: newFolder.name,
           type: "folder",
-          modified: new Date(newFolder.created_at || Date.now()).toLocaleDateString(),
+          modified: new Date(newFolder.createdAt || Date.now()).toLocaleDateString(),
           path: newFolder.path
         };
 
@@ -132,8 +153,8 @@ export default function Storage() {
           id: newFile.id,
           name: newFile.name,
           type: newFile.type as FileItem['type'],
-          size: newFile.size,
-          modified: new Date(newFile.created_at || Date.now()).toLocaleDateString(),
+          size: newFile.size || undefined,
+          modified: new Date(newFile.createdAt || Date.now()).toLocaleDateString(),
           path: newFile.path
         };
 

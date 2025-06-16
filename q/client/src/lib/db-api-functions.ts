@@ -11,18 +11,28 @@ export async function getFiles(): Promise<File[]> {
 }
 
 export async function createFile(fileData: InsertFile): Promise<File> {
-  return apiRequest({
-    url: '/api/files',
+  const response = await fetch('/api/files', {
     method: 'POST',
-    body: fileData,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(fileData),
   });
+  
+  if (!response.ok) {
+    throw new Error('Failed to create file');
+  }
+  return response.json();
 }
 
 export async function deleteFile(id: number): Promise<void> {
-  await apiRequest({
-    url: `/api/files/${id}`,
+  const response = await fetch(`/api/files/${id}`, {
     method: 'DELETE',
   });
+  
+  if (!response.ok) {
+    throw new Error('Failed to delete file');
+  }
 }
 
 // Folder operations - Permanent PostgreSQL Database
@@ -35,18 +45,28 @@ export async function getFolders(): Promise<FolderDB[]> {
 }
 
 export async function createFolder(folderData: InsertFolder): Promise<FolderDB> {
-  return apiRequest({
-    url: '/api/folders',
+  const response = await fetch('/api/folders', {
     method: 'POST',
-    body: folderData,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(folderData),
   });
+  
+  if (!response.ok) {
+    throw new Error('Failed to create folder');
+  }
+  return response.json();
 }
 
 export async function deleteFolder(id: number): Promise<void> {
-  await apiRequest({
-    url: `/api/folders/${id}`,
+  const response = await fetch(`/api/folders/${id}`, {
     method: 'DELETE',
   });
+  
+  if (!response.ok) {
+    throw new Error('Failed to delete folder');
+  }
 }
 
 // Message operations - Permanent PostgreSQL Database
@@ -59,23 +79,36 @@ export async function getMessages(): Promise<MessageDB[]> {
 }
 
 export async function createMessage(messageData: InsertMessage): Promise<MessageDB> {
-  return apiRequest({
-    url: '/api/messages',
+  const response = await fetch('/api/messages', {
     method: 'POST',
-    body: messageData,
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(messageData),
   });
+  
+  if (!response.ok) {
+    throw new Error('Failed to create message');
+  }
+  return response.json();
 }
 
 export async function deleteMessage(id: number): Promise<void> {
-  await apiRequest({
-    url: `/api/messages/${id}`,
+  const response = await fetch(`/api/messages/${id}`, {
     method: 'DELETE',
   });
+  
+  if (!response.ok) {
+    throw new Error('Failed to delete message');
+  }
 }
 
 export async function clearMessages(): Promise<void> {
-  await apiRequest({
-    url: '/api/messages',
+  const response = await fetch('/api/messages', {
     method: 'DELETE',
   });
+  
+  if (!response.ok) {
+    throw new Error('Failed to clear messages');
+  }
 }
