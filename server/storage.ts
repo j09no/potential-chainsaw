@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { files, folders, messages, chapters, subtopics, type File, type FolderDB, type MessageDB, type ChapterDB, type SubtopicDB, type InsertFile, type InsertFolder, type InsertMessage, type InsertChapter, type InsertSubtopic } from "@shared/schema";
+import { files, folders, messages, subjects, chapters, subtopics, type File, type FolderDB, type MessageDB, type SubjectDB, type ChapterDB, type SubtopicDB, type InsertFile, type InsertFolder, type InsertMessage, type InsertSubject, type InsertChapter, type InsertSubtopic } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
 export interface IStorage {
@@ -19,8 +19,14 @@ export interface IStorage {
   deleteMessage(id: number): Promise<void>;
   clearMessages(): Promise<void>;
 
+  // Subject operations
+  getSubjects(): Promise<SubjectDB[]>;
+  createSubject(subjectData: InsertSubject): Promise<SubjectDB>;
+  deleteSubject(id: number): Promise<void>;
+
   // Chapter operations
   getChapters(): Promise<ChapterDB[]>;
+  getChaptersBySubject(subjectId: number): Promise<ChapterDB[]>;
   createChapter(chapterData: InsertChapter): Promise<ChapterDB>;
   deleteChapter(id: number): Promise<void>;
 
@@ -85,6 +91,31 @@ export class DatabaseStorage implements IStorage {
 
   async clearMessages(): Promise<void> {
     await db.delete(messages);
+  }
+
+  // Subject operations
+  async getSubjects(): Promise<SubjectDB[]> {
+    return await db.select().from(subjects);
+  }
+
+  async createSubject(subjectData: InsertSubject): Promise<SubjectDB> {
+    const [subject] = await db
+      .insert(subjects)
+      .values(subjectData)
+      .returning();
+    return subject;
+  }
+
+  async deleteSubject(id: number): Promise<void> {
+    // Delete all related chapters and their subtopics first
+    const relatedChapters = await db.select().from(chapters).where(eq(chapters.subjectId, id));
+    
+    for (const chapter of relatedChapters) {
+      await db.delete(subtopics).where(eq(subtopics.chapterId, chapter.id));
+    }
+    
+    await db.delete(chapters).where(eq(chapters.subjectId, id));
+    await db.delete(subjects).where(eq(subjects.id, id));
   }
 
   // Chapter operations

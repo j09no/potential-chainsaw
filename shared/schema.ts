@@ -37,6 +37,13 @@ export const chapters = pgTable("chapters", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const subjects = pgTable("subjects", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  color: text("color").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const subtopics = pgTable("subtopics", {
   id: serial("id").primaryKey(),
   chapterId: integer("chapter_id").notNull(),
@@ -49,6 +56,7 @@ export const subtopics = pgTable("subtopics", {
 export const insertFileSchema = createInsertSchema(files).omit({ id: true, createdAt: true });
 export const insertFolderSchema = createInsertSchema(folders).omit({ id: true, createdAt: true });
 export const insertMessageSchema = createInsertSchema(messages).omit({ id: true, timestamp: true });
+export const insertSubjectSchema = createInsertSchema(subjects).omit({ id: true, createdAt: true });
 export const insertChapterSchema = createInsertSchema(chapters).omit({ id: true, createdAt: true });
 export const insertSubtopicSchema = createInsertSchema(subtopics).omit({ id: true, createdAt: true });
 
@@ -56,6 +64,7 @@ export const insertSubtopicSchema = createInsertSchema(subtopics).omit({ id: tru
 export type InsertFile = z.infer<typeof insertFileSchema>;
 export type InsertFolder = z.infer<typeof insertFolderSchema>;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type InsertSubject = z.infer<typeof insertSubjectSchema>;
 export type InsertChapter = z.infer<typeof insertChapterSchema>;
 export type InsertSubtopic = z.infer<typeof insertSubtopicSchema>;
 
@@ -63,6 +72,7 @@ export type InsertSubtopic = z.infer<typeof insertSubtopicSchema>;
 export type File = typeof files.$inferSelect;
 export type FolderDB = typeof folders.$inferSelect;
 export type MessageDB = typeof messages.$inferSelect;
+export type SubjectDB = typeof subjects.$inferSelect;
 export type ChapterDB = typeof chapters.$inferSelect;
 export type SubtopicDB = typeof subtopics.$inferSelect;
 
