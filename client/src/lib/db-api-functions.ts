@@ -126,72 +126,9 @@ export async function deleteChapter(id: number): Promise<void> {
   }
 }
 
-// Subtopic API functions
-export async function getSubtopics(): Promise<SubtopicDB[]> {
-  try {
-    const response = await fetch(`${API_BASE}/subtopics`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch subtopics: ${response.statusText}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error('Error getting subtopics:', error);
-    throw error;
-  }
-}
 
-export async function getSubtopicsByChapter(chapterId: number): Promise<SubtopicDB[]> {
-  try {
-    const response = await fetch(`${API_BASE}/chapters/${chapterId}/subtopics`);
-    if (!response.ok) {
-      throw new Error(`Failed to fetch subtopics by chapter: ${response.statusText}`);
-    }
-    return await response.json();
-  } catch (error) {
-    console.error('Error getting subtopics by chapter:', error);
-    throw error;
-  }
-}
 
-export async function createSubtopic(subtopicData: {
-  chapterId: number;
-  title: string;
-  description?: string;
-}): Promise<SubtopicDB> {
-  try {
-    const response = await fetch(`${API_BASE}/subtopics`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(subtopicData),
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Failed to create subtopic: ${response.statusText}`);
-    }
-    
-    return await response.json();
-  } catch (error) {
-    console.error('Error creating subtopic:', error);
-    throw error;
-  }
-}
 
-export async function deleteSubtopic(id: number): Promise<void> {
-  try {
-    const response = await fetch(`${API_BASE}/subtopics/${id}`, {
-      method: 'DELETE',
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Failed to delete subtopic: ${response.statusText}`);
-    }
-  } catch (error) {
-    console.error('Error deleting subtopic:', error);
-    throw error;
-  }
-}
 
 // File API functions
 export async function getFiles(): Promise<File[]> {

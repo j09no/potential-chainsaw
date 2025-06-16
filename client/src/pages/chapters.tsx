@@ -269,8 +269,7 @@ export default function Chapters() {
             return (
               <Card 
                 key={chapter.id} 
-                className="glass-morphism hover:bg-opacity-20 transition-all duration-300 cursor-pointer"
-                onClick={() => setLocation(`/chapter/${chapter.id}`)}
+                className="glass-morphism"
               >
                 <CardContent className="p-6">
                   <div className="flex items-start justify-between mb-4">

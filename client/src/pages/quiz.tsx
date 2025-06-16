@@ -45,10 +45,7 @@ export default function Quiz() {
   const [selectedChapter, setSelectedChapter] = useState<number | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [timerPaused, setTimerPaused] = useState(false);
-  const [quizType, setQuizType] = useState<'chapter' | 'subtopic' | 'wrongOnly'>('chapter');
-  const [wrongAnswers, setWrongAnswers] = useState<Question[]>([]);
-  const [quizResults, setQuizResults] = useState<any>(null);
-  const [subtopicInfo, setSubtopicInfo] = useState<any>(null);
+  const [quizType, setQuizType] = useState<'chapter' | 'wrongOnly'>('chapter');
   const [chapters, setChapters] = useState<any[]>([]);
   const [questionsLoading, setQuestionsLoading] = useState(false);
 
@@ -78,7 +75,6 @@ export default function Quiz() {
       await createQuizStat({
         date: new Date(),
         chapterTitle: currentChapter?.title || 'Unknown Chapter',
-        subtopicTitle: subtopicInfo?.subtopicTitle || undefined,
         subjectTitle: currentChapter?.subject || 'Unknown Subject',
         score: results.correct,
         totalQuestions: questions.length,
@@ -111,17 +107,15 @@ export default function Quiz() {
       setQuestionsLoading(true);
       try {
         const chapterQuestions = await getQuestionsByChapter(selectedChapter);
-        // Filter to only include questions that belong directly to the chapter (not subtopics)
-        const chapterOnlyQuestions = chapterQuestions.filter(q => !q.subtopicId);
-        setQuestions(chapterOnlyQuestions);
+        setQuestions(chapterQuestions);
         setCurrentQuestionIndex(0);
         setSelectedAnswers({});
         setShowResults(false);
 
-        if (chapterOnlyQuestions.length === 0) {
+        if (chapterQuestions.length === 0) {
           toast({
-            title: "No Chapter Questions Available",
-            description: "This chapter doesn't have any direct questions. Add questions to the chapter (not subtopics) first.",
+            title: "No Questions Available",
+            description: "This chapter doesn't have any questions. Add questions to the chapter first.",
             variant: "destructive",
           });
         }
@@ -142,24 +136,7 @@ export default function Quiz() {
 
 
 
-  // Check for subtopic quiz data
-  useEffect(() => {
-    const subtopicQuizData = localStorage.getItem('currentSubtopicQuiz');
-    if (subtopicQuizData) {
-      const { subtopicId, subtopicTitle, chapterId, questions: subtopicQuestions } = JSON.parse(subtopicQuizData);
-      setSelectedChapter(chapterId);
-      setSubtopicInfo({ subtopicId, subtopicTitle });
-      setQuizType('subtopic');
-      // Filter questions that belong to this specific subtopic
-      const filteredQuestions = subtopicQuestions.filter(q => q.subtopicId === subtopicId);
-      setQuestions(filteredQuestions);
-      setCurrentQuestionIndex(0);
-      setSelectedAnswers({});
-      setShowResults(false);
-      // Clear the data after using it
-      localStorage.removeItem('currentSubtopicQuiz');
-    }
-  }, []);
+  
 
   // Show chapter selection if no chapter is selected
   if (!selectedChapter || questions.length === 0) {
@@ -293,9 +270,14 @@ export default function Quiz() {
   };
 
   const handleWrongTry = () => {
-    const wrongQuestions = questions.filter((question, index) => 
-      selectedAnswers[index] && selectedAnswers[index].trim().toUpperCase() !== question.correctAnswer.trim().toUpperCase()
-    );
+    const wrongQuestions = questions.filter((question, index) => {
+      const userAnswer = selectedAnswers[index];
+      if (!userAnswer) return false;
+      const correctAnswerStr = typeof question.correctAnswer === 'number' 
+        ? ['A', 'B', 'C', 'D'][question.correctAnswer] 
+        : String(question.correctAnswer);
+      return userAnswer.trim().toUpperCase() !== correctAnswerStr.trim().toUpperCase();
+    });
 
     if (wrongQuestions.length === 0) {
       toast({
@@ -328,10 +310,16 @@ export default function Quiz() {
       const userAnswer = selectedAnswers[index];
       if (!userAnswer) {
         unanswered++;
-      } else if (userAnswer.trim().toUpperCase() === question.correctAnswer.trim().toUpperCase()) {
-        correct++;
       } else {
-        incorrect++;
+        // Convert question.correctAnswer to string and compare with user answer
+        const correctAnswerStr = typeof question.correctAnswer === 'number' 
+          ? ['A', 'B', 'C', 'D'][question.correctAnswer] 
+          : String(question.correctAnswer);
+        if (userAnswer.trim().toUpperCase() === correctAnswerStr.trim().toUpperCase()) {
+          correct++;
+        } else {
+          incorrect++;
+        }
       }
     });
 
@@ -348,7 +336,7 @@ export default function Quiz() {
         <div className="text-center max-w-md mx-auto p-4">
           <h1 className="text-2xl font-bold mb-4">Ready to Start?</h1>
           <p className="text-gray-400 mb-3">
-            {quizType === 'subtopic' ? subtopicInfo?.subtopicTitle : chapters?.find(c => c.id === selectedChapter)?.title}
+            {chapters?.find(c => c.id === selectedChapter)?.title}
           </p>
           <p className="text-sm text-gray-300 mb-6">
             {totalQuestions} Questions • 30 Minutes
@@ -402,7 +390,10 @@ export default function Quiz() {
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {questions.map((question, index) => {
                 const userAnswer = selectedAnswers[index];
-                const isCorrect = userAnswer && userAnswer.trim().toUpperCase() === question.correctAnswer.trim().toUpperCase();
+                const correctAnswerStr = typeof question.correctAnswer === 'number' 
+                  ? ['A', 'B', 'C', 'D'][question.correctAnswer] 
+                  : String(question.correctAnswer);
+                const isCorrect = userAnswer && userAnswer.trim().toUpperCase() === correctAnswerStr.trim().toUpperCase();
 
                 return (
                   <div key={index} className="bg-gray-900 border border-gray-700 rounded-lg p-2">
@@ -418,9 +409,9 @@ export default function Quiz() {
                         <div className="space-y-1">
                           <div className="flex items-center space-x-1">
                             <span className="text-green-400 text-xs font-bold">Correct:</span>
-                            <span className="text-white text-xs">{question.correctAnswer}</span>
+                            <span className="text-white text-xs">{correctAnswerStr}</span>
                           </div>
-                          {userAnswer && userAnswer.trim().toUpperCase() !== question.correctAnswer.trim().toUpperCase() && (
+                          {userAnswer && userAnswer.trim().toUpperCase() !== correctAnswerStr.trim().toUpperCase() && (
                             <div className="flex items-center space-x-1">
                               <span className="text-red-400 text-xs font-bold">Your answer:</span>
                               <span className="text-white text-xs">{userAnswer}</span>

@@ -136,32 +136,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteChapter(id: number): Promise<void> {
-    // Delete all related subtopics first
-    await db.delete(subtopics).where(eq(subtopics.chapterId, id));
-    // Then delete the chapter
     await db.delete(chapters).where(eq(chapters.id, id));
   }
 
-  // Subtopic operations
-  async getSubtopics(): Promise<SubtopicDB[]> {
-    return await db.select().from(subtopics);
-  }
-
-  async getSubtopicsByChapter(chapterId: number): Promise<SubtopicDB[]> {
-    return await db.select().from(subtopics).where(eq(subtopics.chapterId, chapterId));
-  }
-
-  async createSubtopic(subtopicData: InsertSubtopic): Promise<SubtopicDB> {
-    const [subtopic] = await db
-      .insert(subtopics)
-      .values(subtopicData)
-      .returning();
-    return subtopic;
-  }
-
-  async deleteSubtopic(id: number): Promise<void> {
-    await db.delete(subtopics).where(eq(subtopics.id, id));
-  }
+  
 }
 
 export const storage = new DatabaseStorage();
