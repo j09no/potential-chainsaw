@@ -1,6 +1,47 @@
 import { z } from "zod";
+import { pgTable, serial, text, timestamp, integer } from "drizzle-orm/pg-core";
+import { createInsertSchema } from "drizzle-zod";
 
-// TypeScript interfaces for IndexedDB storage
+// PostgreSQL Database Tables
+export const files = pgTable("files", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").notNull(), // "folder" | "pdf" | "image" | "document"
+  size: text("size"),
+  path: text("path").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const folders = pgTable("folders", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  path: text("path").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const messages = pgTable("messages", {
+  id: serial("id").primaryKey(),
+  text: text("text").notNull(),
+  timestamp: timestamp("timestamp").defaultNow().notNull(),
+  sender: text("sender").notNull(), // "user"
+});
+
+// Drizzle Zod Schemas
+export const insertFileSchema = createInsertSchema(files).omit({ id: true, createdAt: true });
+export const insertFolderSchema = createInsertSchema(folders).omit({ id: true, createdAt: true });
+export const insertMessageSchema = createInsertSchema(messages).omit({ id: true, timestamp: true });
+
+// Insert Types
+export type InsertFile = z.infer<typeof insertFileSchema>;
+export type InsertFolder = z.infer<typeof insertFolderSchema>;
+export type InsertMessage = z.infer<typeof insertMessageSchema>;
+
+// Select Types
+export type File = typeof files.$inferSelect;
+export type FolderDB = typeof folders.$inferSelect;
+export type MessageDB = typeof messages.$inferSelect;
+
+// TypeScript interfaces for IndexedDB storage (legacy - will be removed)
 export interface Subject {
   id: number;
   name: string;
@@ -55,6 +96,7 @@ export interface QuizStat {
   percentage: number;
 }
 
+// Legacy interfaces (keeping for compatibility during migration)
 export interface FileItem {
   id: number;
   name: string;
@@ -62,20 +104,6 @@ export interface FileItem {
   size?: string;
   path: string;
   createdAt: Date;
-}
-
-export interface Folder {
-  id: number;
-  name: string;
-  path: string;
-  createdAt: Date;
-}
-
-export interface Message {
-  id: number;
-  text: string;
-  timestamp: Date;
-  sender: "user";
 }
 
 export interface StudySession {

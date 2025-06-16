@@ -1,12 +1,14 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { createServer } from "http";
 import { setupVite, serveStatic, log } from "./vite";
+import routes from "./routes";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// No API routes - app uses IndexedDB for local storage
+// API routes for permanent PostgreSQL database
+app.use(routes);
 
 (async () => {
   const server = createServer(app);
