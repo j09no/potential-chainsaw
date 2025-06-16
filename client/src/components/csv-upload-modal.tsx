@@ -12,8 +12,6 @@ interface CSVUploadModalProps {
   onClose: () => void;
   chapterId: number;
   chapterTitle: string;
-  subtopicId?: number;
-  subtopicTitle?: string;
 }
 
 interface ParsedQuestion {
@@ -27,7 +25,7 @@ interface ParsedQuestion {
   difficulty?: string;
 }
 
-export function CSVUploadModal({ isOpen, onClose, chapterId, chapterTitle, subtopicId, subtopicTitle }: CSVUploadModalProps) {
+export function CSVUploadModal({ isOpen, onClose, chapterId, chapterTitle }: CSVUploadModalProps) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [parseError, setParseError] = useState<string | null>(null);
@@ -40,37 +38,37 @@ export function CSVUploadModal({ isOpen, onClose, chapterId, chapterTitle, subto
   const handleUploadQuestions = async (questions: ParsedQuestion[]) => {
     setIsUploading(true);
     try {
-      const formattedQuestions = questions.map(q => ({
-        question: q.question,
-        optionA: q.optionA,
-        optionB: q.optionB,
-        optionC: q.optionC,
-        optionD: q.optionD,
-        correctAnswer: q.correctAnswer as 'A' | 'B' | 'C' | 'D',
-        explanation: q.explanation || undefined,
-        difficulty: q.difficulty || undefined,
-        chapterId,
-        subtopicId: subtopicId || undefined
-      }));
+      const formattedQuestions = questions.map(q => {
+        const correctAnswerIndex = q.correctAnswer === 'A' ? 0 : 
+                                   q.correctAnswer === 'B' ? 1 : 
+                                   q.correctAnswer === 'C' ? 2 : 3;
+        
+        return {
+          question: q.question,
+          options: [q.optionA, q.optionB, q.optionC, q.optionD],
+          correctAnswer: correctAnswerIndex,
+          explanation: q.explanation || "No explanation provided",
+          difficulty: (q.difficulty?.toLowerCase() as "easy" | "medium" | "hard") || "medium"
+        };
+      });
 
-      console.log('Uploading to:', { chapterId, subtopicId });
+      console.log('Uploading to chapter:', chapterId);
       console.log('Formatted questions before upload:', formattedQuestions.map(q => ({ 
         question: q.question.substring(0, 30), 
-        chapterId: q.chapterId, 
-        subtopicId: q.subtopicId 
+        options: q.options.length,
+        correctAnswer: q.correctAnswer
       })));
 
-      const result = await createBulkQuestions(formattedQuestions);
+      const result = await createBulkQuestions({
+        chapterId,
+        questions: formattedQuestions
+      });
+      
       console.log('Upload result:', result);
-      console.log('Uploaded questions with subtopicIds:', result.map(q => ({ 
-        id: q.id, 
-        chapterId: q.chapterId, 
-        subtopicId: q.subtopicId 
-      })));
 
       toast({
         title: "Success!",
-        description: `Successfully uploaded ${result.length} questions`,
+        description: `Successfully uploaded ${result.length} questions to ${chapterTitle}`,
       });
 
       handleClose();
@@ -235,7 +233,7 @@ export function CSVUploadModal({ isOpen, onClose, chapterId, chapterTitle, subto
             <div>
               <DialogTitle className="text-base font-bold text-white">Upload CSV</DialogTitle>
               <p className="text-gray-400 text-xs mt-0.5">
-                {subtopicTitle ? `${chapterTitle} > ${subtopicTitle}` : chapterTitle}
+                {chapterTitle}
               </p>
             </div>
           </div>

@@ -3,18 +3,10 @@ import { useLocation } from "wouter";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Book, Plus, ArrowLeft, Play, Trash2, Upload } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Book, ArrowLeft, Play, Upload, Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { CSVUploadModal } from "@/components/csv-upload-modal";
-import { apiRequest, queryClient } from "@/lib/queryClient";
-import { z } from "zod";
-import { getChapters, getQuestionsByChapter } from "@/lib/api-functions";
+import { getChapters, getQuestionsByChapter, deleteChapter } from "@/lib/api-functions";
 
 interface ChapterDetailsProps {
   chapterId: string;
@@ -22,15 +14,14 @@ interface ChapterDetailsProps {
 
 export default function ChapterDetails({ chapterId }: ChapterDetailsProps) {
   const [, setLocation] = useLocation();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [csvUploadModal, setCsvUploadModal] = useState<{ 
     isOpen: boolean; 
     chapterId: number; 
-    subtopicId?: number;
-    subtopicTitle?: string;
+    chapterTitle: string;
   }>({
     isOpen: false,
     chapterId: 0,
+    chapterTitle: "",
   });
   const { toast } = useToast();
 
@@ -42,270 +33,199 @@ export default function ChapterDetails({ chapterId }: ChapterDetailsProps) {
     },
   });
 
-  // Get subtopics data
-  const { data: subtopics, refetch: refetchSubtopics } = useQuery<Subtopic[]>({
-    queryKey: [`/api/subtopics/chapter/${chapterId}`],
+  // Get questions for this chapter
+  const { data: questions, refetch: refetchQuestions } = useQuery({
+    queryKey: [`questions-chapter-${chapterId}`],
     queryFn: async () => {
-      return await getSubtopicsByChapter(parseInt(chapterId));
+      return await getQuestionsByChapter(parseInt(chapterId));
     },
     enabled: !!chapterId,
   });
 
   const chapter = chapters?.find(c => c.id === parseInt(chapterId));
 
-  const form = useForm<z.infer<typeof subtopicSchema>>({
-    resolver: zodResolver(subtopicSchema),
-    defaultValues: {
-      title: "",
-      description: "",
-    },
-  });
-
-  // Create subtopic mutation
-  const createSubtopicMutation = useMutation({
-    mutationFn: async (data: z.infer<typeof subtopicSchema>) => {
-      return await createSubtopic({
-        ...data,
-        chapterId: parseInt(chapterId),
-      });
-    },
-    onSuccess: () => {
-      toast({
-        title: "Success",
-        description: "Subtopic created successfully",
-      });
-      setIsDialogOpen(false);
-      form.reset();
-      refetchSubtopics();
-    },
-    onError: () => {
-      toast({
-        title: "Error",
-        description: "Failed to create subtopic",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const deleteSubtopicMutation = useMutation({
-    mutationFn: async (subtopicId: number) => {
-      return await deleteSubtopic(subtopicId);
-    },
-    onSuccess: () => {
-      refetchSubtopics();
-      toast({
-        title: "Success",
-        description: "Subtopic deleted successfully",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handleAddSubtopic = (data: z.infer<typeof subtopicSchema>) => {
-    createSubtopicMutation.mutate(data);
-  };
-
-  const handleDeleteSubtopic = (subtopicId: number) => {
-    if (confirm("Are you sure you want to delete this subtopic?")) {
-      deleteSubtopicMutation.mutate(subtopicId);
+  const handleDeleteChapter = async () => {
+    if (confirm("Are you sure you want to delete this chapter? This will delete all questions in this chapter. This action cannot be undone.")) {
+      try {
+        await deleteChapter(parseInt(chapterId));
+        toast({
+          title: "Success",
+          description: "Chapter deleted successfully",
+        });
+        setLocation("/chapters");
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: "Failed to delete chapter",
+          variant: "destructive",
+        });
+      }
     }
   };
 
-  const handleDeleteChapter = () => {
-    if (confirm("Are you sure you want to delete this chapter? This action cannot be undone.")) {
-      toast({
-        title: "Success",
-        description: "Chapter deleted successfully",
-      });
-      setLocation("/chapters");
-    }
-  };
-
-  const handlePlaySubtopic = async (subtopicId: number, subtopicTitle: string) => {
+  const handlePlayChapter = async () => {
     try {
-      console.log('Playing subtopic:', subtopicId, subtopicTitle);
-      const questions = await getQuestionsBySubtopic(subtopicId);
+      console.log('Playing chapter:', chapterId, chapter?.title);
+      const chapterQuestions = await getQuestionsByChapter(parseInt(chapterId));
       
-      console.log('Received questions for subtopic:', questions);
-      console.log('Questions count:', questions.length);
+      console.log('Received questions for chapter:', chapterQuestions);
+      console.log('Questions count:', chapterQuestions.length);
 
-      if (questions && questions.length > 0) {
-        // Store current subtopic for quiz
-        localStorage.setItem('currentSubtopicQuiz', JSON.stringify({
-          subtopicId,
-          subtopicTitle,
+      if (chapterQuestions && chapterQuestions.length > 0) {
+        // Store current chapter for quiz
+        localStorage.setItem('currentChapterQuiz', JSON.stringify({
           chapterId: parseInt(chapterId),
-          questions
+          chapterTitle: chapter?.title,
+          questions: chapterQuestions
         }));
         setLocation("/quiz");
       } else {
-        console.log('No questions found for subtopicId:', subtopicId);
+        console.log('No questions found for chapterId:', chapterId);
         toast({
           title: "No Questions Available",
-          description: `Please add questions to ${subtopicTitle} first using the CSV upload.`,
+          description: `Please add questions to ${chapter?.title} first using the CSV upload.`,
           variant: "destructive",
         });
       }
     } catch (error) {
-      console.error('Error loading subtopic questions:', error);
+      console.error('Error loading chapter questions:', error);
       toast({
         title: "Error",
-        description: "Failed to load questions for this subtopic",
+        description: "Failed to load questions for this chapter",
         variant: "destructive",
       });
     }
   };
 
+  const questionsCount = questions?.length || 0;
+
   if (!chapter) {
     return (
-      <section className="mb-8">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold mb-4">Chapter Not Found</h2>
-          <Button onClick={() => setLocation("/chapters")}>
-            Back to Chapters
-          </Button>
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-800 p-4">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center py-8 text-white">
+            <p>Chapter not found</p>
+            <Button 
+              onClick={() => setLocation("/chapters")}
+              className="mt-4"
+            >
+              Back to Chapters
+            </Button>
+          </div>
         </div>
-      </section>
+      </div>
     );
   }
 
   return (
-    <section className="mb-8">
-      <div className="flex justify-center mb-6">
-        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-          <DialogTrigger asChild>
-            <Button size="sm" className="bg-blue-600 hover:bg-blue-500">
-              <Plus className="w-4 h-4 mr-2" />
-              Add Subtopic
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-violet-800 p-4">
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              onClick={() => setLocation("/chapters")}
+              className="text-white hover:bg-white/10"
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Chapters
             </Button>
-          </DialogTrigger>
-          <DialogContent className="bg-jet-light border-glass-border">
-            <DialogHeader>
-              <DialogTitle>Add New Subtopic</DialogTitle>
-            </DialogHeader>
-            <Form {...form}>
-              <form onSubmit={form.handleSubmit(handleAddSubtopic)} className="space-y-4">
-                <FormField
-                  control={form.control}
-                  name="title"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Title</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Subtopic title" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  control={form.control}
-                  name="description"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Description</FormLabel>
-                      <FormControl>
-                        <Textarea placeholder="Subtopic description" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <Button type="submit" className="w-full" disabled={createSubtopicMutation.isPending}>
-                  {createSubtopicMutation.isPending ? "Adding..." : "Add Subtopic"}
-                </Button>
-              </form>
-            </Form>
-          </DialogContent>
-        </Dialog>
-      </div>
+            <div>
+              <h1 className="text-3xl font-bold text-white">{chapter.title}</h1>
+              <p className="text-gray-300 mt-1">{chapter.description}</p>
+              <div className="flex items-center space-x-4 mt-2 text-sm text-gray-400">
+                <span>Difficulty: {chapter.difficulty}</span>
+                <span>Questions: {questionsCount}</span>
+              </div>
+            </div>
+          </div>
+          <div className="flex space-x-2">
+            <Button
+              onClick={handlePlayChapter}
+              className="bg-blue-600 hover:bg-blue-500 text-white"
+              disabled={questionsCount === 0}
+            >
+              <Play className="w-4 h-4 mr-2" />
+              Start Quiz
+            </Button>
+            <Button
+              onClick={() => setCsvUploadModal({
+                isOpen: true,
+                chapterId: parseInt(chapterId),
+                chapterTitle: chapter.title
+              })}
+              className="bg-green-600 hover:bg-green-500 text-white"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              Upload Questions
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteChapter}
+              className="bg-red-600 hover:bg-red-500"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Delete Chapter
+            </Button>
+          </div>
+        </div>
 
-      {/* Subtopics */}
-      <div className="space-y-4">
-        <h3 className="text-xl font-semibold mb-4">Subtopics ({subtopics?.length || 0})</h3>
-
-        {!subtopics || subtopics.length === 0 ? (
+        {/* Chapter Questions Overview */}
+        <div className="grid gap-6">
           <Card className="glass-morphism">
-            <CardContent className="p-6 text-center">
-              <Book className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-400">No subtopics found</p>
-              <p className="text-sm text-gray-500 mt-1">Add your first subtopic to get started</p>
-            </CardContent>
-          </Card>
-        ) : (
-          subtopics.map((subtopic) => (
-            <Card key={subtopic.id} className="glass-morphism hover:bg-opacity-20 transition-all duration-300">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <h4 className="text-lg font-semibold mb-2">{subtopic.title}</h4>
-                    {subtopic.description && (
-                      <p className="text-gray-400 text-sm mb-3">{subtopic.description}</p>
-                    )}
-                    <div className="flex items-center space-x-4 text-sm mb-3">
-                      <span className="flex items-center space-x-1">
-                        <Book className="w-4 h-4 text-blue-400" />
-                        <span>Questions Available</span>
-                      </span>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-xl font-semibold text-white flex items-center">
+                  <Book className="w-5 h-5 mr-2 text-blue-400" />
+                  Questions Overview
+                </h3>
+              </div>
+              
+              {questionsCount === 0 ? (
+                <div className="text-center py-8">
+                  <Book className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-400">No questions found</p>
+                  <p className="text-sm text-gray-500 mt-1">Upload questions using CSV to get started</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-center">
+                    <div className="bg-blue-600/20 rounded-lg p-4">
+                      <div className="text-2xl font-bold text-blue-400">{questionsCount}</div>
+                      <div className="text-sm text-gray-300">Total Questions</div>
                     </div>
-                    <p className="text-xs text-gray-500">
-                      Created: {new Date(subtopic.created_at).toLocaleDateString()}
-                    </p>
+                    <div className="bg-green-600/20 rounded-lg p-4">
+                      <div className="text-2xl font-bold text-green-400">{chapter.progress}%</div>
+                      <div className="text-sm text-gray-300">Progress</div>
+                    </div>
+                    <div className="bg-purple-600/20 rounded-lg p-4">
+                      <div className="text-2xl font-bold text-purple-400 capitalize">{chapter.difficulty}</div>
+                      <div className="text-sm text-gray-300">Difficulty</div>
+                    </div>
                   </div>
-                  <div className="flex space-x-2">
+                  
+                  <div className="flex justify-center space-x-4 pt-4">
                     <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePlaySubtopic(subtopic.id, subtopic.title)}
-                      className="bg-blue-600 hover:bg-blue-500 text-white"
+                      onClick={handlePlayChapter}
+                      className="bg-blue-600 hover:bg-blue-500 text-white px-8"
                     >
-                      <Play className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setCsvUploadModal({
-                        isOpen: true,
-                        chapterId: parseInt(chapterId),
-                        subtopicId: subtopic.id,
-                        subtopicTitle: subtopic.title
-                      })}
-                      className="bg-green-600 hover:bg-green-500 text-white"
-                    >
-                      <Upload className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="destructive"
-                      size="sm"
-                      onClick={() => handleDeleteSubtopic(subtopic.id)}
-                      className="bg-red-600 hover:bg-red-500"
-                      disabled={deleteSubtopicMutation.isPending}
-                    >
-                      <Trash2 className="w-4 h-4" />
+                      <Play className="w-4 h-4 mr-2" />
+                      Start Practice Quiz
                     </Button>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))
-        )}
-      </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
-      {/* CSV Upload Modal */}
-      <CSVUploadModal
-        isOpen={csvUploadModal.isOpen}
-        onClose={() => setCsvUploadModal({ isOpen: false, chapterId: 0 })}
-        chapterId={csvUploadModal.chapterId}
-        chapterTitle={chapter.title}
-        subtopicId={csvUploadModal.subtopicId}
-        subtopicTitle={csvUploadModal.subtopicTitle}
-      />
-    </section>
+        <CSVUploadModal
+          isOpen={csvUploadModal.isOpen}
+          onClose={() => setCsvUploadModal({ isOpen: false, chapterId: 0, chapterTitle: "" })}
+          chapterId={csvUploadModal.chapterId}
+          chapterTitle={csvUploadModal.chapterTitle}
+        />
+      </div>
+    </div>
   );
 }
