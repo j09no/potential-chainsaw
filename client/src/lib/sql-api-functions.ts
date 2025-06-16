@@ -217,8 +217,8 @@ export async function updateChapter(id: number, data: {
   difficulty?: string;
 }): Promise<Chapter> {
   await sqliteDB.init();
-  const updates = [];
-  const params = [];
+  const updates: string[] = [];
+  const params: any[] = [];
   
   Object.entries(data).forEach(([key, value]) => {
     if (value !== undefined) {
@@ -316,8 +316,8 @@ export async function updateQuizSession(id: number, data: {
   is_completed?: boolean;
 }): Promise<QuizSession> {
   await sqliteDB.init();
-  const updates = [];
-  const params = [];
+  const updates: string[] = [];
+  const params: any[] = [];
   
   Object.entries(data).forEach(([key, value]) => {
     if (value !== undefined) {

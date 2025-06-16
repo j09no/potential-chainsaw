@@ -131,7 +131,7 @@ export default function Chat() {
                     <div className="max-w-xs lg:max-w-md px-4 py-2 bg-blue-500 text-white rounded-lg">
                       <p className="text-sm" style={{ fontFamily: 'Milker, "SF Pro Display", "iOS Emoji", "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", monospace, sans-serif' }}>{msg.text}</p>
                       <p className="text-xs text-blue-100 mt-1">
-                        {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                        {new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                       </p>
                     </div>
                   </div>

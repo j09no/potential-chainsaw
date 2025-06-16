@@ -3,9 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { FolderPlus, Upload, FileText, Image, Download, Search, MoreVertical, Folder, ArrowLeft, Trash2 } from "lucide-react";
+import { FolderPlus, Upload, FileText, Image, Download, Search, MoreVertical, Folder, ArrowLeft, Trash2, Database, Save, RefreshCw, HardDrive } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getFiles, getFolders, createFile, createFolder, deleteFile, deleteFolder } from "../lib/api-functions";
+import { getFiles, getFolders, createFile, createFolder, deleteFile, deleteFolder, downloadDatabase, uploadDatabase, clearAllData, createBackup, getBackups, restoreBackup } from "../lib/sql-api-functions";
 import { DeleteConfirmationModal } from '@/components/delete-confirmation-modal';
 
 interface FileItem {
@@ -23,6 +23,8 @@ export default function Storage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isCreateFolderOpen, setIsCreateFolderOpen] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
+  const [showDatabaseManager, setShowDatabaseManager] = useState(false);
+  const [backups, setBackups] = useState<string[]>([]);
 
   const [files, setFiles] = useState<FileItem[]>([]);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
@@ -45,7 +47,7 @@ export default function Storage() {
             id: folder.id,
             name: folder.name,
             type: "folder" as const,
-            modified: new Date(folder.createdAt).toLocaleDateString(),
+            modified: new Date(folder.created_at).toLocaleDateString(),
             path: folder.path
           })),
           ...filesData.map((file: any) => ({
@@ -53,7 +55,7 @@ export default function Storage() {
             name: file.name,
             type: file.type as FileItem['type'],
             size: file.size,
-            modified: new Date(file.createdAt).toLocaleDateString(),
+            modified: new Date(file.created_at).toLocaleDateString(),
             path: file.path
           }))
         ];
@@ -65,7 +67,18 @@ export default function Storage() {
     };
 
     loadData();
+    loadBackups();
   }, []);
+
+  // Load available backups
+  const loadBackups = async () => {
+    try {
+      const availableBackups = await getBackups();
+      setBackups(availableBackups);
+    } catch (error) {
+      console.error('Error loading backups:', error);
+    }
+  };
 
   const getFileIcon = (type: string) => {
     switch (type) {
@@ -88,7 +101,7 @@ export default function Storage() {
           id: newFolder.id,
           name: newFolder.name,
           type: "folder",
-          modified: new Date(newFolder.created_at).toLocaleDateString(),
+          modified: new Date(newFolder.created_at || Date.now()).toLocaleDateString(),
           path: newFolder.path
         };
 
