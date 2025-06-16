@@ -182,15 +182,15 @@ export async function getQuestions(): Promise<Question[]> {
   }
 }
 
-export async function getQuestionsByChapter(chapterId: number): Promise<Question[]> {
-  try {
-    await ensureInitialized();
-    return await indexedDB.getByIndex('questions', 'chapterId', chapterId);
-  } catch (error) {
-    console.error('Error getting questions by chapter:', error);
-    return [];
-  }
-}
+// export async function getQuestionsByChapter(chapterId: number): Promise<Question[]> {
+//   try {
+//     await ensureInitialized();
+//     return await indexedDB.getByIndex('questions', 'chapterId', chapterId);
+//   } catch (error) {
+//     console.error('Error getting questions by chapter:', error);
+//     return [];
+//   }
+// }
 
 export async function createQuestion(questionData: {
   chapterId: number;
@@ -229,49 +229,49 @@ export async function createQuestion(questionData: {
   }
 }
 
-export async function createBulkQuestions(questionsData: {
-  chapterId: number;
-  questions: Array<{
-    question: string;
-    options: string[];
-    correctAnswer: number;
-    explanation: string;
-    difficulty: "easy" | "medium" | "hard";
-  }>;
-}): Promise<Question[]> {
-  try {
-    await ensureInitialized();
-    const createdQuestions: Question[] = [];
+// export async function createBulkQuestionsAPI(questionsData: {
+//   chapterId: number;
+//   questions: Array<{
+//     question: string;
+//     options: string[];
+//     correctAnswer: number;
+//     explanation: string;
+//     difficulty: "easy" | "medium" | "hard";
+//   }>;
+// }): Promise<Question[]> {
+//   try {
+//     await ensureInitialized();
+//     const createdQuestions: Question[] = [];
 
-    for (const questionData of questionsData.questions) {
-      const id = await indexedDB.getNextId('questions');
-      const newQuestion: Question = {
-        id,
-        chapterId: questionsData.chapterId,
-        question: questionData.question,
-        options: questionData.options,
-        correctAnswer: questionData.correctAnswer,
-        explanation: questionData.explanation,
-        difficulty: questionData.difficulty
-      };
+//     for (const questionData of questionsData.questions) {
+//       const id = await indexedDB.getNextId('questions');
+//       const newQuestion: Question = {
+//         id,
+//         chapterId: questionsData.chapterId,
+//         question: questionData.question,
+//         options: questionData.options,
+//         correctAnswer: questionData.correctAnswer,
+//         explanation: questionData.explanation,
+//         difficulty: questionData.difficulty
+//       };
 
-      const question = await indexedDB.add('questions', newQuestion);
-      createdQuestions.push(question);
-    }
+//       const question = await indexedDB.add('questions', newQuestion);
+//       createdQuestions.push(question);
+//     }
 
-    // Update chapter's total questions count
-    const chapter = await getChapterById(questionsData.chapterId);
-    if (chapter) {
-      chapter.totalQuestions += questionsData.questions.length;
-      await indexedDB.put('chapters', chapter);
-    }
+//     // Update chapter's total questions count
+//     const chapter = await getChapterById(questionsData.chapterId);
+//     if (chapter) {
+//       chapter.totalQuestions += questionsData.questions.length;
+//       await indexedDB.put('chapters', chapter);
+//     }
 
-    return createdQuestions;
-  } catch (error) {
-    console.error('Error creating bulk questions:', error);
-    throw error;
-  }
-}
+//     return createdQuestions;
+//   } catch (error) {
+//     console.error('Error creating bulk questions:', error);
+//     throw error;
+//   }
+// }
 
 // Quiz Sessions
 export async function createQuizSession(sessionData: {
@@ -563,20 +563,23 @@ export async function clearAllData(): Promise<void> {
 }
 
 // Question API functions for server communication
-export async function getQuestionsByChapterFromAPI(chapterId: number) {
+export async function getQuestionsByChapter(chapterId: number) {
   try {
+    console.log('Fetching questions for chapter:', chapterId);
     const response = await fetch(`/api/questions/chapter/${chapterId}`);
     if (!response.ok) {
-      throw new Error(`Failed to fetch questions: ${response.statusText}`);
+      throw new Error(`HTTP error! status: ${response.status}`);
     }
-    return await response.json();
+    const questions = await response.json();
+    console.log('Fetched questions from API:', questions);
+    return questions;
   } catch (error) {
-    console.error('Error getting questions by chapter:', error);
+    console.error('Error fetching questions from API:', error);
     throw error;
   }
 }
 
-export async function createBulkQuestionsAPI(data: { chapterId: number; questions: any[] }) {
+export async function createBulkQuestions(data: { chapterId: number; questions: any[] }) {
   try {
     console.log('Creating bulk questions:', data);
     const response = await fetch(`/api/questions/bulk`, {
@@ -589,10 +592,11 @@ export async function createBulkQuestionsAPI(data: { chapterId: number; question
 
     if (!response.ok) {
       const errorData = await response.json();
-      throw new Error(errorData.error || `Failed to create questions: ${response.statusText}`);
+      throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
     }
 
-    return await response.json();
+    const result = await response.json();
+    return result;
   } catch (error) {
     console.error('Error creating bulk questions:', error);
     throw error;

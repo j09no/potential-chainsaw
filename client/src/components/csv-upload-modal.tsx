@@ -5,7 +5,7 @@ import { Upload, X, FileText, AlertCircle, CheckCircle } from "lucide-react";
 
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
-import { createBulkQuestionsAPI } from "@/lib/api-functions";
+import { createBulkQuestions } from "@/lib/api-functions";
 
 interface CSVUploadModalProps {
   isOpen: boolean;
@@ -59,21 +59,16 @@ export function CSVUploadModal({ isOpen, onClose, chapterId, chapterTitle }: CSV
         correctAnswer: q.correctAnswer
       })));
 
-      const result = await createBulkQuestionsAPI({
+      const result = await createBulkQuestions({
         chapterId,
         questions: formattedQuestions
       });
-      
-      // Refresh the page data
-      if (typeof window !== 'undefined') {
-        window.location.reload();
-      }
       
       console.log('Upload result:', result);
 
       toast({
         title: "Success!",
-        description: `Successfully uploaded ${result.length} questions to ${chapterTitle}`,
+        description: `Successfully uploaded ${formattedQuestions.length} questions to ${chapterTitle}`,
       });
 
       handleClose();

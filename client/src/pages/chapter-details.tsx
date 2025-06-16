@@ -36,9 +36,7 @@ export default function ChapterDetails({ chapterId }: ChapterDetailsProps) {
   // Get questions for this chapter
   const { data: questions, refetch: refetchQuestions } = useQuery({
     queryKey: [`questions-chapter-${chapterId}`],
-    queryFn: async () => {
-      return await getQuestionsByChapter(parseInt(chapterId));
-    },
+    queryFn: () => getQuestionsByChapter(parseInt(chapterId)),
     enabled: !!chapterId,
   });
 
@@ -67,7 +65,7 @@ export default function ChapterDetails({ chapterId }: ChapterDetailsProps) {
     try {
       console.log('Playing chapter:', chapterId, chapter?.title);
       const chapterQuestions = await getQuestionsByChapter(parseInt(chapterId));
-      
+
       console.log('Received questions for chapter:', chapterQuestions);
       console.log('Questions count:', chapterQuestions.length);
 
@@ -180,7 +178,7 @@ export default function ChapterDetails({ chapterId }: ChapterDetailsProps) {
                   Questions Overview
                 </h3>
               </div>
-              
+
               {questionsCount === 0 ? (
                 <div className="text-center py-8">
                   <Book className="w-12 h-12 text-gray-400 mx-auto mb-4" />
@@ -203,7 +201,7 @@ export default function ChapterDetails({ chapterId }: ChapterDetailsProps) {
                       <div className="text-sm text-gray-300">Difficulty</div>
                     </div>
                   </div>
-                  
+
                   <div className="flex justify-center space-x-4 pt-4">
                     <Button
                       onClick={handlePlayChapter}

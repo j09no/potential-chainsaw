@@ -19,7 +19,7 @@ import { CSVUploadModal } from "@/components/csv-upload-modal";
 import type { ChapterDB, SubjectDB } from "@shared/schema";
 import { z } from "zod";
 import { useLocation } from "wouter";
-import { getChapters, createChapter, deleteChapter, getSubjects, getChaptersBySubject } from "@/lib/db-api-functions";
+import { getChapters, createChapter, deleteChapter, getSubjects, getChaptersBySubject, getQuestionsByChapter } from "@/lib/db-api-functions";
 import { DeleteConfirmationModal } from "@/components/delete-confirmation-modal";
 
 const formSchema = z.object({
@@ -161,6 +161,26 @@ export default function Chapters() {
     );
   }
 
+  const { data: questions } = useQuery({
+    queryKey: ["questions"],
+    queryFn: async () => {
+      // Get all questions from all chapters
+      const allQuestions = [];
+      if (chapters) {
+        for (const chapter of chapters) {
+          try {
+            const chapterQuestions = await getQuestionsByChapter(chapter.id);
+            allQuestions.push(...chapterQuestions);
+          } catch (error) {
+            console.error(`Error fetching questions for chapter ${chapter.id}:`, error);
+          }
+        }
+      }
+      return allQuestions;
+    },
+    enabled: !!chapters && chapters.length > 0,
+  });
+
   return (
     <section className="mb-8 slide-up">
       <div className="flex items-center justify-between mb-6">
@@ -265,6 +285,7 @@ export default function Chapters() {
         ) : (
           filteredChapters.map((chapter) => {
             const progressPercentage = chapter.progress || 0;
+            const chapterQuestions = questions?.filter(question => question.chapterId === chapter.id) || [];
 
             return (
               <Card 
@@ -279,7 +300,7 @@ export default function Chapters() {
                       <div className="flex items-center space-x-4 text-sm">
                         <span className="flex items-center space-x-1">
                           <Book className="w-4 h-4 text-blue-400" />
-                          <span>{chapter.totalQuestions} Questions</span>
+                          <span>{chapterQuestions.length} Questions</span>
                         </span>
                         <span className="flex items-center space-x-1">
                           <Clock className="w-4 h-4 text-green-400" />
@@ -369,3 +390,4 @@ export default function Chapters() {
     </section>
   );
 }
+```

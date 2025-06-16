@@ -136,6 +136,9 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteChapter(id: number): Promise<void> {
+    // First delete all questions associated with this chapter
+    await this.deleteQuestionsByChapter(id);
+    // Then delete the chapter
     await db.delete(chapters).where(eq(chapters.id, id));
   }
 
