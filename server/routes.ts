@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { storage } from "./storage";
-import { insertFileSchema, insertFolderSchema, insertMessageSchema, insertSubjectSchema, insertChapterSchema } from "@shared/schema";
+import { insertFileSchema, insertFolderSchema, insertMessageSchema, insertSubjectSchema, insertChapterSchema, insertQuestionSchema } from "@shared/schema";
 import { z } from "zod";
 
 const router = Router();
@@ -254,17 +254,27 @@ router.post("/api/questions/bulk", async (req, res) => {
 
     console.log(`Creating ${questions.length} questions for chapter ${chapterId}`);
     
-    const formattedQuestions = questions.map(q => ({
-      chapterId: chapterId,
-      question: q.question,
-      optionA: q.options[0],
-      optionB: q.options[1],
-      optionC: q.options[2], 
-      optionD: q.options[3],
-      correctAnswer: q.correctAnswer, // This should be a number (0,1,2,3)
-      explanation: q.explanation || "No explanation provided",
-      difficulty: q.difficulty || "medium"
-    }));
+    const formattedQuestions = questions.map(q => {
+      const questionData = {
+        chapterId: chapterId,
+        question: q.question,
+        optionA: q.options[0],
+        optionB: q.options[1],
+        optionC: q.options[2], 
+        optionD: q.options[3],
+        correctAnswer: q.correctAnswer, // This should be a number (0,1,2,3)
+        explanation: q.explanation || "No explanation provided",
+        difficulty: q.difficulty || "medium"
+      };
+      
+      // Validate each question
+      try {
+        return insertQuestionSchema.parse(questionData);
+      } catch (validationError) {
+        console.error("Question validation failed:", validationError);
+        throw new Error(`Invalid question data: ${validationError.message}`);
+      }
+    });
 
     const result = await storage.createBulkQuestions(formattedQuestions);
     res.json(result);

@@ -52,6 +52,20 @@ export const subtopics = pgTable("subtopics", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const questions = pgTable("questions", {
+  id: serial("id").primaryKey(),
+  chapterId: integer("chapter_id").notNull(),
+  question: text("question").notNull(),
+  optionA: text("option_a").notNull(),
+  optionB: text("option_b").notNull(),
+  optionC: text("option_c").notNull(),
+  optionD: text("option_d").notNull(),
+  correctAnswer: integer("correct_answer").notNull(), // 0,1,2,3 for A,B,C,D
+  explanation: text("explanation"),
+  difficulty: text("difficulty").default("medium").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Drizzle Zod Schemas
 export const insertFileSchema = createInsertSchema(files).omit({ id: true, createdAt: true });
 export const insertFolderSchema = createInsertSchema(folders).omit({ id: true, createdAt: true });
@@ -59,6 +73,7 @@ export const insertMessageSchema = createInsertSchema(messages).omit({ id: true,
 export const insertSubjectSchema = createInsertSchema(subjects).omit({ id: true, createdAt: true });
 export const insertChapterSchema = createInsertSchema(chapters).omit({ id: true, createdAt: true });
 export const insertSubtopicSchema = createInsertSchema(subtopics).omit({ id: true, createdAt: true });
+export const insertQuestionSchema = createInsertSchema(questions).omit({ id: true, createdAt: true });
 
 // Insert Types
 export type InsertFile = z.infer<typeof insertFileSchema>;
@@ -67,6 +82,7 @@ export type InsertMessage = z.infer<typeof insertMessageSchema>;
 export type InsertSubject = z.infer<typeof insertSubjectSchema>;
 export type InsertChapter = z.infer<typeof insertChapterSchema>;
 export type InsertSubtopic = z.infer<typeof insertSubtopicSchema>;
+export type InsertQuestion = z.infer<typeof insertQuestionSchema>;
 
 // Select Types
 export type File = typeof files.$inferSelect;
@@ -75,6 +91,7 @@ export type MessageDB = typeof messages.$inferSelect;
 export type SubjectDB = typeof subjects.$inferSelect;
 export type ChapterDB = typeof chapters.$inferSelect;
 export type SubtopicDB = typeof subtopics.$inferSelect;
+export type QuestionDB = typeof questions.$inferSelect;
 
 // TypeScript interfaces for IndexedDB storage (legacy - will be removed)
 export interface Subject {

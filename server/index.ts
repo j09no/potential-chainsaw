@@ -3,66 +3,6 @@ import { createServer } from "http";
 import { setupVite, serveStatic, log } from "./vite";
 import routes from "./routes";
 
-// Add localStorage polyfill for server-side
-if (typeof global.localStorage === 'undefined') {
-  global.localStorage = {
-    getItem: (key: string) => {
-      try {
-        const fs = require('fs');
-        const path = require('path');
-        const filePath = path.join(process.cwd(), 'data', `${key}.json`);
-        if (fs.existsSync(filePath)) {
-          return fs.readFileSync(filePath, 'utf8');
-        }
-        return null;
-      } catch (error) {
-        return null;
-      }
-    },
-    setItem: (key: string, value: string) => {
-      try {
-        const fs = require('fs');
-        const path = require('path');
-        const dataDir = path.join(process.cwd(), 'data');
-        if (!fs.existsSync(dataDir)) {
-          fs.mkdirSync(dataDir, { recursive: true });
-        }
-        const filePath = path.join(dataDir, `${key}.json`);
-        fs.writeFileSync(filePath, value);
-      } catch (error) {
-        console.error('Error writing to localStorage:', error);
-      }
-    },
-    removeItem: (key: string) => {
-      try {
-        const fs = require('fs');
-        const path = require('path');
-        const filePath = path.join(process.cwd(), 'data', `${key}.json`);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
-      } catch (error) {
-        console.error('Error removing from localStorage:', error);
-      }
-    },
-    clear: () => {
-      try {
-        const fs = require('fs');
-        const path = require('path');
-        const dataDir = path.join(process.cwd(), 'data');
-        if (fs.existsSync(dataDir)) {
-          const files = fs.readdirSync(dataDir);
-          files.forEach((file: string) => {
-            fs.unlinkSync(path.join(dataDir, file));
-          });
-        }
-      } catch (error) {
-        console.error('Error clearing localStorage:', error);
-      }
-    }
-  };
-}
-
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

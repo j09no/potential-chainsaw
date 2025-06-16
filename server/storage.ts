@@ -1,6 +1,7 @@
 import { db } from "./db";
 import { files, folders, messages, subjects, chapters, type File, type FolderDB, type MessageDB, type SubjectDB, type ChapterDB, type InsertFile, type InsertFolder, type InsertMessage, type InsertSubject, type InsertChapter } from "@shared/schema";
 import { eq } from "drizzle-orm";
+import { questions, type QuestionDB, type InsertQuestion } from "@shared/schema"; // Import questions schema
 
 export interface IStorage {
   // File operations
@@ -30,7 +31,10 @@ export interface IStorage {
   createChapter(chapterData: InsertChapter): Promise<ChapterDB>;
   deleteChapter(id: number): Promise<void>;
 
-
+  // Question operations
+  getQuestionsByChapter(chapterId: number): Promise<QuestionDB[]>;
+  createBulkQuestions(questionsData: InsertQuestion[]): Promise<QuestionDB[]>;
+  deleteQuestionsByChapter(chapterId: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -136,35 +140,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Question operations
-  async getQuestionsByChapter(chapterId: number): Promise<any[]> {
-    // For now, return from localStorage since we don't have questions table in schema
-    const questionsData = JSON.parse(global.localStorage?.getItem('questions') || '[]');
-    return questionsData.filter((q: any) => q.chapterId === chapterId);
+  async getQuestionsByChapter(chapterId: number): Promise<QuestionDB[]> {
+    return await db.select().from(questions).where(eq(questions.chapterId, chapterId));
   }
 
-  async createBulkQuestions(questionsData: any[]): Promise<any[]> {
-    // For now, store in localStorage since we don't have questions table in schema
-    const existingQuestions = JSON.parse(global.localStorage?.getItem('questions') || '[]');
+  async createBulkQuestions(questionsData: InsertQuestion[]): Promise<QuestionDB[]> {
+    const insertedQuestions = await db
+      .insert(questions)
+      .values(questionsData)
+      .returning();
+    return insertedQuestions;
+  }
 
-    const newQuestions = questionsData.map((q, index) => ({
-      id: Date.now() + index,
-      chapterId: q.chapterId,
-      question: q.question,
-      optionA: q.optionA,
-      optionB: q.optionB,
-      optionC: q.optionC,
-      optionD: q.optionD,
-      correctAnswer: q.correctAnswer, // Store as number
-      explanation: q.explanation,
-      difficulty: q.difficulty,
-      createdAt: new Date()
-    }));
-
-    const allQuestions = [...existingQuestions, ...newQuestions];
-    global.localStorage?.setItem('questions', JSON.stringify(allQuestions));
-
-    console.log(`Stored ${newQuestions.length} questions in localStorage`);
-    return newQuestions;
+  async deleteQuestionsByChapter(chapterId: number): Promise<void> {
+    await db.delete(questions).where(eq(questions.chapterId, chapterId));
   }
 }
 
