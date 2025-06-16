@@ -18,7 +18,7 @@ let initializationPromise: Promise<void> | null = null;
 
 async function initializeDefaultData() {
   await indexedDB.init();
-  
+
   // Check if subjects already exist
   const existingSubjects = await indexedDB.getAll('subjects');
   if (existingSubjects.length > 0) {
@@ -79,7 +79,7 @@ export async function deleteSubject(id: number): Promise<void> {
     for (const chapter of chapters) {
       await deleteChapter(chapter.id);
     }
-    
+
     await indexedDB.delete('subjects', id);
   } catch (error) {
     console.error('Error deleting subject:', error);
@@ -214,7 +214,7 @@ export async function createQuestion(questionData: {
     };
 
     const question = await indexedDB.add('questions', newQuestion);
-    
+
     // Update chapter's total questions count
     const chapter = await getChapterById(questionData.chapterId);
     if (chapter) {
@@ -242,7 +242,7 @@ export async function createBulkQuestions(questionsData: {
   try {
     await ensureInitialized();
     const createdQuestions: Question[] = [];
-    
+
     for (const questionData of questionsData.questions) {
       const id = await indexedDB.getNextId('questions');
       const newQuestion: Question = {
@@ -562,5 +562,78 @@ export async function clearAllData(): Promise<void> {
   }
 }
 
+// Question API functions
+export async function getQuestionsByChapter(chapterId: number) {
+  try {
+    const response = await fetch(`/api/questions/chapter/${chapterId}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch questions: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting questions by chapter:', error);
+    throw error;
+  }
+}
+
+export async function createBulkQuestions(data: { chapterId: number; questions: any[] }) {
+  try {
+    console.log('Creating bulk questions:', data);
+    const response = await fetch(`/api/questions/bulk`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || `Failed to create questions: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating bulk questions:', error);
+    throw error;
+  }
+}
+
+export async function createQuizStat(statData: any) {
+  // For now, just store in localStorage since we don't have quiz stats table
+  const stats = JSON.parse(localStorage.getItem('quizStats') || '[]');
+  stats.push({ ...statData, id: Date.now() });
+  localStorage.setItem('quizStats', JSON.stringify(stats));
+  return statData;
+}
+
+export async function updateUserStats(statsData: any) {
+  // For now, just store in localStorage
+  localStorage.setItem('userStats', JSON.stringify(statsData));
+  return statsData;
+}
+
+// Initialize default subjects for NEET
+export async function initializeDefaultSubjects(): Promise<void> {
+  try {
+    const existingSubjects = await getSubjects();
+    if (existingSubjects.length > 0) {
+      return; // Already initialized
+    }
+
+    const defaultSubjects = [
+      { name: "Physics", color: "#3B82F6" },
+      { name: "Chemistry", color: "#10B981" },
+      { name: "Biology", color: "#F59E0B" }
+    ];
+
+    for (const subject of defaultSubjects) {
+      await createSubject(subject);
+    }
+  } catch (error) {
+    console.error('Error initializing default subjects:', error);
+    throw error;
+  }
+}
 // Remove all subtopic-related functions since we're removing that feature
 // No subtopic functions will be exported

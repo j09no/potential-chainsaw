@@ -30,7 +30,7 @@ export interface IStorage {
   createChapter(chapterData: InsertChapter): Promise<ChapterDB>;
   deleteChapter(id: number): Promise<void>;
 
-  
+
 }
 
 export class DatabaseStorage implements IStorage {
@@ -105,11 +105,11 @@ export class DatabaseStorage implements IStorage {
   async deleteSubject(id: number): Promise<void> {
     // Delete all related chapters and their subtopics first
     const relatedChapters = await db.select().from(chapters).where(eq(chapters.subjectId, id));
-    
+
     for (const chapter of relatedChapters) {
       await db.delete(subtopics).where(eq(subtopics.chapterId, chapter.id));
     }
-    
+
     await db.delete(chapters).where(eq(chapters.subjectId, id));
     await db.delete(subjects).where(eq(subjects.id, id));
   }
@@ -135,7 +135,37 @@ export class DatabaseStorage implements IStorage {
     await db.delete(chapters).where(eq(chapters.id, id));
   }
 
-  
+  // Question operations
+  async getQuestionsByChapter(chapterId: number): Promise<any[]> {
+    // For now, return from localStorage since we don't have questions table in schema
+    const questionsData = JSON.parse(global.localStorage?.getItem('questions') || '[]');
+    return questionsData.filter((q: any) => q.chapterId === chapterId);
+  }
+
+  async createBulkQuestions(questionsData: any[]): Promise<any[]> {
+    // For now, store in localStorage since we don't have questions table in schema
+    const existingQuestions = JSON.parse(global.localStorage?.getItem('questions') || '[]');
+
+    const newQuestions = questionsData.map((q, index) => ({
+      id: Date.now() + index,
+      chapterId: q.chapterId,
+      question: q.question,
+      optionA: q.optionA,
+      optionB: q.optionB,
+      optionC: q.optionC,
+      optionD: q.optionD,
+      correctAnswer: q.correctAnswer, // Store as number
+      explanation: q.explanation,
+      difficulty: q.difficulty,
+      createdAt: new Date()
+    }));
+
+    const allQuestions = [...existingQuestions, ...newQuestions];
+    global.localStorage?.setItem('questions', JSON.stringify(allQuestions));
+
+    console.log(`Stored ${newQuestions.length} questions in localStorage`);
+    return newQuestions;
+  }
 }
 
 export const storage = new DatabaseStorage();

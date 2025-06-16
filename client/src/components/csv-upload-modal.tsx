@@ -64,6 +64,11 @@ export function CSVUploadModal({ isOpen, onClose, chapterId, chapterTitle }: CSV
         questions: formattedQuestions
       });
       
+      // Refresh the page data
+      if (typeof window !== 'undefined') {
+        window.location.reload();
+      }
+      
       console.log('Upload result:', result);
 
       toast({

@@ -229,6 +229,49 @@ router.delete("/api/chapters/:id", async (req, res) => {
   }
 });
 
+// Question routes
+router.get("/api/questions/chapter/:chapterId", async (req, res) => {
+  try {
+    const chapterId = parseInt(req.params.chapterId);
+    if (isNaN(chapterId)) {
+      return res.status(400).json({ error: "Invalid chapter ID" });
+    }
+    const questions = await storage.getQuestionsByChapter(chapterId);
+    res.json(questions);
+  } catch (error) {
+    console.error("Error getting questions by chapter:", error);
+    res.status(500).json({ error: "Failed to get questions" });
+  }
+});
 
+router.post("/api/questions/bulk", async (req, res) => {
+  try {
+    const { chapterId, questions } = req.body;
+    
+    if (!chapterId || !questions || !Array.isArray(questions)) {
+      return res.status(400).json({ error: "Invalid data: chapterId and questions array required" });
+    }
+
+    console.log(`Creating ${questions.length} questions for chapter ${chapterId}`);
+    
+    const formattedQuestions = questions.map(q => ({
+      chapterId: chapterId,
+      question: q.question,
+      optionA: q.options[0],
+      optionB: q.options[1],
+      optionC: q.options[2], 
+      optionD: q.options[3],
+      correctAnswer: q.correctAnswer, // This should be a number (0,1,2,3)
+      explanation: q.explanation || "No explanation provided",
+      difficulty: q.difficulty || "medium"
+    }));
+
+    const result = await storage.createBulkQuestions(formattedQuestions);
+    res.json(result);
+  } catch (error) {
+    console.error("Error creating bulk questions:", error);
+    res.status(500).json({ error: "Failed to create questions", message: error.message });
+  }
+});
 
 export default router;

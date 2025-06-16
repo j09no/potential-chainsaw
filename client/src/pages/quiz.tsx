@@ -515,11 +515,11 @@ export default function Quiz() {
 
               <div className="space-y-2">
                 {[
-                  { key: 'A', value: currentQuestion.optionA },
-                  { key: 'B', value: currentQuestion.optionB },
-                  { key: 'C', value: currentQuestion.optionC },
-                  { key: 'D', value: currentQuestion.optionD }
-                ].map((option) => {
+                  { key: 'A', value: currentQuestion.optionA || currentQuestion.options?.[0] },
+                  { key: 'B', value: currentQuestion.optionB || currentQuestion.options?.[1] },
+                  { key: 'C', value: currentQuestion.optionC || currentQuestion.options?.[2] },
+                  { key: 'D', value: currentQuestion.optionD || currentQuestion.options?.[3] }
+                ].filter(option => option.value).map((option) => {
                   const isSelected = selectedAnswers[currentQuestionIndex] === option.key;
 
                   return (
