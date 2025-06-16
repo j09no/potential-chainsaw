@@ -45,8 +45,18 @@ export function ensureInitialized(): Promise<void> {
 // Subjects
 export async function getSubjects(): Promise<Subject[]> {
   try {
-    await ensureInitialized();
-    return await indexedDB.getAll('subjects');
+    const response = await fetch('/api/subjects');
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const subjects = await response.json();
+    
+    // Convert database format to expected format
+    return subjects.map((subject: any) => ({
+      id: subject.id,
+      name: subject.name,
+      color: subject.color
+    }));
   } catch (error) {
     console.error('Error getting subjects:', error);
     return [];
@@ -55,15 +65,24 @@ export async function getSubjects(): Promise<Subject[]> {
 
 export async function createSubject(subjectData: { name: string; color: string }): Promise<Subject> {
   try {
-    await ensureInitialized();
-    const id = await indexedDB.getNextId('subjects');
-    const newSubject: Subject = {
-      id,
-      name: subjectData.name,
-      color: subjectData.color
+    const response = await fetch('/api/subjects', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(subjectData),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to create subject: ${response.statusText}`);
+    }
+    
+    const subject = await response.json();
+    return {
+      id: subject.id,
+      name: subject.name,
+      color: subject.color
     };
-
-    return await indexedDB.add('subjects', newSubject);
   } catch (error) {
     console.error('Error creating subject:', error);
     throw error;
@@ -137,19 +156,28 @@ export async function createChapter(chapterData: {
   difficulty: string;
 }): Promise<Chapter> {
   try {
-    await ensureInitialized();
-    const id = await indexedDB.getNextId('chapters');
-    const newChapter: Chapter = {
-      id,
-      subjectId: chapterData.subjectId,
-      title: chapterData.title,
-      description: chapterData.description,
-      difficulty: chapterData.difficulty,
+    const response = await fetch('/api/chapters', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(chapterData),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to create chapter: ${response.statusText}`);
+    }
+    
+    const chapter = await response.json();
+    return {
+      id: chapter.id,
+      subjectId: chapter.subjectId,
+      title: chapter.title,
+      description: chapter.description || '',
       progress: 0,
-      totalQuestions: 0
+      totalQuestions: 0,
+      difficulty: chapter.difficulty || 'medium'
     };
-
-    return await indexedDB.add('chapters', newChapter);
   } catch (error) {
     console.error('Error creating chapter:', error);
     throw error;

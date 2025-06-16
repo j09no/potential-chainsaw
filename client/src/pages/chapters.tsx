@@ -42,15 +42,36 @@ export default function Chapters() {
     chapter: any;
   }>({ isOpen: false, chapter: null });
 
-  const { data: subjects } = useQuery<SubjectDB[]>({
+  const { data: subjects } = useQuery({
     queryKey: ["subjects"],
     queryFn: getSubjects,
   });
 
   // Get chapters
-  const { data: chapters = [], isLoading, error, refetch } = useQuery<ChapterDB[]>({
+  const { data: chapters = [], isLoading, error, refetch } = useQuery({
     queryKey: ["chapters"],
     queryFn: getChapters,
+  });
+
+  // Get all questions - moved here to avoid hooks order issue
+  const { data: questions } = useQuery({
+    queryKey: ["questions"],
+    queryFn: async () => {
+      // Get all questions from all chapters
+      const allQuestions = [];
+      if (chapters) {
+        for (const chapter of chapters) {
+          try {
+            const chapterQuestions = await getQuestionsByChapter(chapter.id);
+            allQuestions.push(...chapterQuestions);
+          } catch (error) {
+            console.error(`Error fetching questions for chapter ${chapter.id}:`, error);
+          }
+        }
+      }
+      return allQuestions;
+    },
+    enabled: !!chapters && chapters.length > 0,
   });
 
   // Create chapter mutation
@@ -160,26 +181,6 @@ export default function Chapters() {
       </section>
     );
   }
-
-  const { data: questions } = useQuery({
-    queryKey: ["questions"],
-    queryFn: async () => {
-      // Get all questions from all chapters
-      const allQuestions = [];
-      if (chapters) {
-        for (const chapter of chapters) {
-          try {
-            const chapterQuestions = await getQuestionsByChapter(chapter.id);
-            allQuestions.push(...chapterQuestions);
-          } catch (error) {
-            console.error(`Error fetching questions for chapter ${chapter.id}:`, error);
-          }
-        }
-      }
-      return allQuestions;
-    },
-    enabled: !!chapters && chapters.length > 0,
-  });
 
   return (
     <section className="mb-8 slide-up">
