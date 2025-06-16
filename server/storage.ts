@@ -107,11 +107,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   async deleteSubject(id: number): Promise<void> {
-    // Delete all related chapters and their subtopics first
+    // Delete all related chapters first
     const relatedChapters = await db.select().from(chapters).where(eq(chapters.subjectId, id));
 
     for (const chapter of relatedChapters) {
-      await db.delete(subtopics).where(eq(subtopics.chapterId, chapter.id));
+      // Delete questions associated with this chapter
+      await db.delete(questions).where(eq(questions.chapterId, chapter.id));
     }
 
     await db.delete(chapters).where(eq(chapters.subjectId, id));

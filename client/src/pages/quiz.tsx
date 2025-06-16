@@ -27,12 +27,11 @@ interface Question {
   optionB: string;
   optionC: string;
   optionD: string;
-  correctAnswer: 'A' | 'B' | 'C' | 'D';
+  correctAnswer: number; // 0,1,2,3 for A,B,C,D (matches database format)
   explanation?: string;
   difficulty?: string;
   chapterId: number;
-  subtopicId?: number;
-  createdAt: Date;
+  createdAt?: Date;
 }
 
 export default function Quiz() {
@@ -515,10 +514,10 @@ export default function Quiz() {
 
               <div className="space-y-2">
                 {[
-                  { key: 'A', value: currentQuestion.optionA || currentQuestion.options?.[0] },
-                  { key: 'B', value: currentQuestion.optionB || currentQuestion.options?.[1] },
-                  { key: 'C', value: currentQuestion.optionC || currentQuestion.options?.[2] },
-                  { key: 'D', value: currentQuestion.optionD || currentQuestion.options?.[3] }
+                  { key: 'A', value: currentQuestion.optionA },
+                  { key: 'B', value: currentQuestion.optionB },
+                  { key: 'C', value: currentQuestion.optionC },
+                  { key: 'D', value: currentQuestion.optionD }
                 ].filter(option => option.value).map((option) => {
                   const isSelected = selectedAnswers[currentQuestionIndex] === option.key;
 
