@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { files, folders, messages, type File, type FolderDB, type MessageDB, type InsertFile, type InsertFolder, type InsertMessage } from "@shared/schema";
+import { files, folders, messages, chapters, subtopics, type File, type FolderDB, type MessageDB, type ChapterDB, type SubtopicDB, type InsertFile, type InsertFolder, type InsertMessage, type InsertChapter, type InsertSubtopic } from "@shared/schema";
 import { eq } from "drizzle-orm";
 
 export interface IStorage {
@@ -18,6 +18,17 @@ export interface IStorage {
   createMessage(messageData: InsertMessage): Promise<MessageDB>;
   deleteMessage(id: number): Promise<void>;
   clearMessages(): Promise<void>;
+
+  // Chapter operations
+  getChapters(): Promise<ChapterDB[]>;
+  createChapter(chapterData: InsertChapter): Promise<ChapterDB>;
+  deleteChapter(id: number): Promise<void>;
+
+  // Subtopic operations
+  getSubtopics(): Promise<SubtopicDB[]>;
+  getSubtopicsByChapter(chapterId: number): Promise<SubtopicDB[]>;
+  createSubtopic(subtopicData: InsertSubtopic): Promise<SubtopicDB>;
+  deleteSubtopic(id: number): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -74,6 +85,47 @@ export class DatabaseStorage implements IStorage {
 
   async clearMessages(): Promise<void> {
     await db.delete(messages);
+  }
+
+  // Chapter operations
+  async getChapters(): Promise<ChapterDB[]> {
+    return await db.select().from(chapters);
+  }
+
+  async createChapter(chapterData: InsertChapter): Promise<ChapterDB> {
+    const [chapter] = await db
+      .insert(chapters)
+      .values(chapterData)
+      .returning();
+    return chapter;
+  }
+
+  async deleteChapter(id: number): Promise<void> {
+    // Delete all related subtopics first
+    await db.delete(subtopics).where(eq(subtopics.chapterId, id));
+    // Then delete the chapter
+    await db.delete(chapters).where(eq(chapters.id, id));
+  }
+
+  // Subtopic operations
+  async getSubtopics(): Promise<SubtopicDB[]> {
+    return await db.select().from(subtopics);
+  }
+
+  async getSubtopicsByChapter(chapterId: number): Promise<SubtopicDB[]> {
+    return await db.select().from(subtopics).where(eq(subtopics.chapterId, chapterId));
+  }
+
+  async createSubtopic(subtopicData: InsertSubtopic): Promise<SubtopicDB> {
+    const [subtopic] = await db
+      .insert(subtopics)
+      .values(subtopicData)
+      .returning();
+    return subtopic;
+  }
+
+  async deleteSubtopic(id: number): Promise<void> {
+    await db.delete(subtopics).where(eq(subtopics.id, id));
   }
 }
 

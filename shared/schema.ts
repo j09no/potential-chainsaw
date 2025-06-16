@@ -26,20 +26,45 @@ export const messages = pgTable("messages", {
   sender: text("sender").notNull(), // "user"
 });
 
+export const chapters = pgTable("chapters", {
+  id: serial("id").primaryKey(),
+  subjectId: integer("subject_id").notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  progress: integer("progress").default(0).notNull(),
+  totalQuestions: integer("total_questions").default(0).notNull(),
+  difficulty: text("difficulty").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const subtopics = pgTable("subtopics", {
+  id: serial("id").primaryKey(),
+  chapterId: integer("chapter_id").notNull(),
+  title: text("title").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Drizzle Zod Schemas
 export const insertFileSchema = createInsertSchema(files).omit({ id: true, createdAt: true });
 export const insertFolderSchema = createInsertSchema(folders).omit({ id: true, createdAt: true });
 export const insertMessageSchema = createInsertSchema(messages).omit({ id: true, timestamp: true });
+export const insertChapterSchema = createInsertSchema(chapters).omit({ id: true, createdAt: true });
+export const insertSubtopicSchema = createInsertSchema(subtopics).omit({ id: true, createdAt: true });
 
 // Insert Types
 export type InsertFile = z.infer<typeof insertFileSchema>;
 export type InsertFolder = z.infer<typeof insertFolderSchema>;
 export type InsertMessage = z.infer<typeof insertMessageSchema>;
+export type InsertChapter = z.infer<typeof insertChapterSchema>;
+export type InsertSubtopic = z.infer<typeof insertSubtopicSchema>;
 
 // Select Types
 export type File = typeof files.$inferSelect;
 export type FolderDB = typeof folders.$inferSelect;
 export type MessageDB = typeof messages.$inferSelect;
+export type ChapterDB = typeof chapters.$inferSelect;
+export type SubtopicDB = typeof subtopics.$inferSelect;
 
 // TypeScript interfaces for IndexedDB storage (legacy - will be removed)
 export interface Subject {

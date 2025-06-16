@@ -1,5 +1,5 @@
 import { apiRequest } from './queryClient';
-import type { File, FolderDB, MessageDB, InsertFile, InsertFolder, InsertMessage } from "@shared/schema";
+import type { File, FolderDB, MessageDB, ChapterDB, SubtopicDB, InsertFile, InsertFolder, InsertMessage, InsertChapter, InsertSubtopic } from "@shared/schema";
 
 // File operations - Permanent PostgreSQL Database
 export async function getFiles(): Promise<File[]> {
