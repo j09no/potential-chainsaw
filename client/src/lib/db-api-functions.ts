@@ -112,3 +112,79 @@ export async function clearMessages(): Promise<void> {
     throw new Error('Failed to clear messages');
   }
 }
+
+// Chapter operations - Permanent PostgreSQL Database
+export async function getChapters(): Promise<ChapterDB[]> {
+  const response = await fetch('/api/chapters');
+  if (!response.ok) {
+    throw new Error('Failed to fetch chapters');
+  }
+  return response.json();
+}
+
+export async function createChapter(chapterData: InsertChapter): Promise<ChapterDB> {
+  const response = await fetch('/api/chapters', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(chapterData),
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to create chapter');
+  }
+  return response.json();
+}
+
+export async function deleteChapter(id: number): Promise<void> {
+  const response = await fetch(`/api/chapters/${id}`, {
+    method: 'DELETE',
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to delete chapter');
+  }
+}
+
+// Subtopic operations - Permanent PostgreSQL Database
+export async function getSubtopics(): Promise<SubtopicDB[]> {
+  const response = await fetch('/api/subtopics');
+  if (!response.ok) {
+    throw new Error('Failed to fetch subtopics');
+  }
+  return response.json();
+}
+
+export async function getSubtopicsByChapter(chapterId: number): Promise<SubtopicDB[]> {
+  const response = await fetch(`/api/chapters/${chapterId}/subtopics`);
+  if (!response.ok) {
+    throw new Error('Failed to fetch subtopics for chapter');
+  }
+  return response.json();
+}
+
+export async function createSubtopic(subtopicData: InsertSubtopic): Promise<SubtopicDB> {
+  const response = await fetch('/api/subtopics', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(subtopicData),
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to create subtopic');
+  }
+  return response.json();
+}
+
+export async function deleteSubtopic(id: number): Promise<void> {
+  const response = await fetch(`/api/subtopics/${id}`, {
+    method: 'DELETE',
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to delete subtopic');
+  }
+}
