@@ -19,7 +19,7 @@ import { CSVUploadModal } from "@/components/csv-upload-modal";
 import type { ChapterDB, SubjectDB } from "@shared/schema";
 import { z } from "zod";
 import { useLocation } from "wouter";
-import { getChapters, createChapter, deleteChapter, getSubjects, getChaptersBySubject, getQuestionsByChapter } from "@/lib/db-api-functions";
+import { getChapters, createChapter, deleteChapter, getSubjects, getChaptersBySubject, getQuestionsByChapter } from "@/lib/api-functions";
 import { DeleteConfirmationModal } from "@/components/delete-confirmation-modal";
 
 const formSchema = z.object({
@@ -390,4 +390,3 @@ export default function Chapters() {
     </section>
   );
 }
-```
