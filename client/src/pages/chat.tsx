@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { X, Image as ImageIcon, Paperclip, Smile, Mic, Send } from "lucide-react";
-import { getMessages, createMessage } from "../lib/api-functions";
+import { getMessages, createMessage } from "../lib/db-api-functions";
 
 interface Message {
   id: number;

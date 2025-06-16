@@ -1,4 +1,4 @@
-import type { SubjectDB, ChapterDB, SubtopicDB } from "@shared/schema";
+import type { SubjectDB, ChapterDB, SubtopicDB, File, FolderDB, MessageDB } from "@shared/schema";
 
 const API_BASE = '/api';
 
@@ -189,6 +189,167 @@ export async function deleteSubtopic(id: number): Promise<void> {
     }
   } catch (error) {
     console.error('Error deleting subtopic:', error);
+    throw error;
+  }
+}
+
+// File API functions
+export async function getFiles(): Promise<File[]> {
+  try {
+    const response = await fetch(`${API_BASE}/files`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch files: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting files:', error);
+    throw error;
+  }
+}
+
+export async function createFile(fileData: {
+  name: string;
+  type: string;
+  size?: string;
+  path: string;
+}): Promise<File> {
+  try {
+    const response = await fetch(`${API_BASE}/files`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(fileData),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to create file: ${response.statusText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating file:', error);
+    throw error;
+  }
+}
+
+export async function deleteFile(id: number): Promise<void> {
+  try {
+    const response = await fetch(`${API_BASE}/files/${id}`, {
+      method: 'DELETE',
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to delete file: ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error('Error deleting file:', error);
+    throw error;
+  }
+}
+
+// Folder API functions
+export async function getFolders(): Promise<FolderDB[]> {
+  try {
+    const response = await fetch(`${API_BASE}/folders`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch folders: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting folders:', error);
+    throw error;
+  }
+}
+
+export async function createFolder(folderData: {
+  name: string;
+  path: string;
+}): Promise<FolderDB> {
+  try {
+    const response = await fetch(`${API_BASE}/folders`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(folderData),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to create folder: ${response.statusText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating folder:', error);
+    throw error;
+  }
+}
+
+export async function deleteFolder(id: number): Promise<void> {
+  try {
+    const response = await fetch(`${API_BASE}/folders/${id}`, {
+      method: 'DELETE',
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to delete folder: ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error('Error deleting folder:', error);
+    throw error;
+  }
+}
+
+// Message API functions
+export async function getMessages(): Promise<MessageDB[]> {
+  try {
+    const response = await fetch(`${API_BASE}/messages`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch messages: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error getting messages:', error);
+    throw error;
+  }
+}
+
+export async function createMessage(messageData: {
+  text: string;
+  sender: string;
+}): Promise<MessageDB> {
+  try {
+    const response = await fetch(`${API_BASE}/messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(messageData),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to create message: ${response.statusText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error('Error creating message:', error);
+    throw error;
+  }
+}
+
+export async function clearMessages(): Promise<void> {
+  try {
+    const response = await fetch(`${API_BASE}/messages`, {
+      method: 'DELETE',
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to clear messages: ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error('Error clearing messages:', error);
     throw error;
   }
 }
