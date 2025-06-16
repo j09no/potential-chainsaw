@@ -1,11 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { X, Image as ImageIcon, Paperclip, Smile, Mic, Send } from "lucide-react";
-import { getMessages, createMessage } from "../lib/api-functions";
+import { getMessages, createMessage } from "../lib/sql-api-functions";
 
 interface Message {
   id: number;
   text: string;
-  timestamp: Date;
+  timestamp: string;
   sender: "user";
 }
 
@@ -23,7 +23,7 @@ export default function Chat() {
         const formattedMessages = data.map((msg: any) => ({
           id: msg.id,
           text: msg.text,
-          timestamp: msg.timestamp || new Date(msg.createdAt || Date.now()),
+          timestamp: msg.timestamp || new Date().toISOString(),
           sender: msg.sender
         }));
         setMessages(formattedMessages);
@@ -76,7 +76,7 @@ export default function Chat() {
     const newMessage: Message = {
       id: Date.now(),
       text: message,
-      timestamp: new Date(),
+      timestamp: new Date().toISOString(),
       sender: "user"
     };
 
