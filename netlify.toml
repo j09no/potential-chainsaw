@@ -5,9 +5,13 @@
 [build.environment]
   NODE_VERSION = "18"
 
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/:splat"
+  to = "/.netlify/functions/api/:splat"
   status = 200
 
 [[redirects]]
@@ -15,5 +19,10 @@
   to = "/index.html"
   status = 200
 
-[functions]
-  directory = "netlify/functions"
+[context.production.environment]
+  DATABASE_URL = "postgresql://neondb_owner:npg_7HfabeDdGUX8@ep-quiet-sunset-a54qddli.us-east-2.aws.neon.tech/neondb?sslmode=require"
+  PGDATABASE = "neondb"
+  PGPORT = "5432"
+  PGHOST = "ep-quiet-sunset-a54qddli.us-east-2.aws.neon.tech"
+  PGPASSWORD = "npg_7HfabeDdGUX8"
+  PGUSER = "neondb_owner"
